@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maincubes AIDC 源网荷储战略洞察报告 — 华为数字能源</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================
+   INDUSTRIAL CONTROL ROOM × BAUHAUS MANIFESTO
+   ============================================ */
+:root {
+  --void: #010609;
+  --navy: #040f18;
+  --navy-surface: #081826;
+  --navy-raised: #0c1e32;
+  --steel: #1a2e42;
+  --steel-light: #243b54;
+  --cyan: #00d4a8;
+  --cyan-muted: #007f66;
+  --amber: #e6a817;
+  --amber-dim: #8a6310;
+  --red: #e0556a;
+  --white: #eef2f6;
+  --gray-100: #e0e5eb;
+  --gray-200: #b8c0c8;
+  --gray-300: #88929d;
+  --gray-400: #8a949e;
+  --gray-500: #6b7682;
+  --gray-600: #20262d;
+  --font-display: 'Spline Sans', system-ui, sans-serif;
+  --font-body: 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+  --sidebar-w: 48px;
+  --line: rgba(255,255,255,0.025);
+  --line-strong: rgba(255,255,255,0.06);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 15px; }
+body {
+  font-family: var(--font-body);
+  background: var(--void);
+  color: var(--gray-200);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* SVG Noise Overlay */
+body::after {
+  content: ''; position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+  opacity: 0.028;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+}
+
+/* Blueprint Grid */
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0,212,168,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,168,0.018) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Progress Bar */
+#progress-bar {
+  position: fixed; top: 0; left: 0; height: 1.5px;
+  background: var(--cyan);
+  z-index: 10000; width: 0%;
+  box-shadow: 0 0 8px rgba(0,212,168,0.65), 0 0 20px rgba(0,212,168,0.25);
+  transition: width 0.1s linear;
+}
+
+/* Language Toggle - Precision Instrument Selector */
+#lang-toggle {
+  position: fixed; top: 20px; right: 32px; z-index: 9999;
+  display: flex; gap: 0;
+  background: rgba(4,15,24,0.92);
+  backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 2px; overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+#lang-toggle button {
+  padding: 7px 14px; font-size: 0.66rem; font-weight: 600;
+  letter-spacing: 0.08em; cursor: pointer; border: none;
+  background: transparent; color: var(--gray-400);
+  transition: all 0.2s; font-family: var(--font-display);
+  border-right: 1px solid rgba(255,255,255,0.04);
+}
+#lang-toggle button:last-child { border-right: none; }
+#lang-toggle button:hover { color: var(--white); background: rgba(255,255,255,0.02); }
+#lang-toggle button.active {
+  background: var(--cyan);
+  color: var(--void);
+  font-weight: 700;
+  box-shadow: inset 0 0 12px rgba(0,0,0,0.2);
+}
+
+/* Sidebar - Instrument Panel Indicators */
+#sidebar {
+  position: fixed; left: 0; top: 0; height: 100vh;
+  width: var(--sidebar-w); z-index: 9998;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 18px;
+  background: rgba(1,6,9,0.9);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid rgba(255,255,255,0.03);
+}
+#sidebar .dot {
+  width: 6px; height: 6px;
+  background: #35404a; cursor: pointer;
+  transition: all 0.28s cubic-bezier(0.25, 0.8, 0.25, 1.2);
+  position: relative;
+}
+#sidebar .dot:hover { background: var(--cyan); transform: scale(1.6); }
+#sidebar .dot.active {
+  background: var(--cyan); transform: scale(1.5);
+  box-shadow: 0 0 10px rgba(0,212,168,0.8), 0 0 24px rgba(0,212,168,0.3);
+  outline: 1px solid rgba(0,212,168,0.4);
+  outline-offset: 4px;
+}
+#sidebar .dot .tooltip {
+  position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+  white-space: nowrap; font-size: 0.6rem; color: var(--gray-200);
+  background: var(--navy-raised); padding: 4px 8px;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  font-family: var(--font-mono); font-weight: 500;
+  letter-spacing: 0.04em; border-left: 1px solid rgba(0,212,168,0.3);
+}
+
+#sidebar .dot:hover .tooltip { opacity: 1; }
+
+#main { margin-left: var(--sidebar-w); position: relative; z-index: 1; }
+
+/* Section */
+.section {
+  min-height: 100vh; padding: 80px 80px 64px;
+  position: relative;
+  border-bottom: 1px solid var(--line);
+}
+.section:nth-child(odd) { background: var(--navy); }
+.section:nth-child(even) { background: var(--void); }
+
+/* Section Header - DIN Specification Style */
+.sec-num {
+  font-family: var(--font-mono); font-size: 0.62rem; font-weight: 500;
+  color: var(--cyan); letter-spacing: 0.2em; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 12px;
+}
+.sec-num::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, rgba(0,212,168,0.35), transparent);
+  max-width: 120px;
+}
+.sec-title {
+  font-family: var(--font-display); font-size: 2rem; font-weight: 600;
+  color: var(--white); letter-spacing: -0.02em; line-height: 1.15;
+  margin-bottom: 10px;
+}
+.sec-subtitle {
+  font-family: var(--font-body); font-size: 0.88rem; color: var(--gray-400);
+  margin-bottom: 48px; max-width: 620px; line-height: 1.65; font-weight: 400;
+  font-style: italic;
+}
+.divider {
+  width: 36px; height: 1.5px;
+  background: var(--cyan);
+  margin-bottom: 40px; border: none;
+}
+
+/* Hero - Command Center */
+#hero {
+  display: flex; flex-direction: column; justify-content: center;
+  align-items: flex-start; min-height: 100vh; padding: 80px 80px 64px;
+  background:
+    radial-gradient(ellipse at 25% 20%, rgba(0,212,168,0.05) 0%, transparent 55%),
+    radial-gradient(ellipse at 70% 80%, rgba(0,212,168,0.02) 0%, transparent 50%),
+    var(--void);
+  position: relative;
+}
+#hero .hero-label {
+  font-family: var(--font-mono); font-size: 0.58rem; letter-spacing: 0.25em;
+  color: var(--gray-500); margin-bottom: 28px; font-weight: 500;
+}
+#hero h1 {
+  font-family: var(--font-display); font-size: 2.75rem; font-weight: 700;
+  letter-spacing: -0.03em; color: var(--white); line-height: 1.08;
+  margin-bottom: 16px; max-width: 780px;
+}
+#hero h1 span { color: var(--cyan); }
+#hero .hero-meta {
+  font-size: 0.75rem; color: var(--gray-400); margin-bottom: 52px;
+  font-family: var(--font-mono); font-weight: 400;
+}
+#hero .hero-stats {
+  display: flex; gap: 64px; margin-top: 8px;
+}
+#hero .hero-stat-val {
+  font-size: 2.2rem; font-weight: 700; color: var(--cyan);
+  font-family: var(--font-display); letter-spacing: -0.02em;
+}
+#hero .hero-stat-lbl {
+  font-size: 0.62rem; color: var(--gray-400); letter-spacing: 0.12em;
+  font-weight: 500; margin-top: 6px; font-family: var(--font-display);
+}
+
+/* Card - Instrument Panel */
+.card-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px; margin-bottom: 36px;
+}
+.card {
+  background: rgba(8,24,38,0.6);
+  border: 1px solid rgba(255,255,255,0.04);
+  padding: 26px 24px;
+  transition: border-color 0.3s, background 0.3s;
+  position: relative; overflow: hidden;
+}
+.card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,212,168,0.2), transparent);
+  opacity: 0; transition: opacity 0.3s;
+}
+.card:hover {
+  border-color: rgba(0,212,168,0.25);
+  background: rgba(8,24,38,0.8);
+}
+.card:hover::before { opacity: 1; }
+.card h4 {
+  font-family: var(--font-display); font-size: 0.72rem; font-weight: 600;
+  color: var(--cyan); margin-bottom: 10px;
+  letter-spacing: 0.08em;
+}
+.card p { font-size: 0.84rem; color: var(--gray-300); line-height: 1.6; font-weight: 400; }
+.card .metric {
+  font-family: var(--font-display); font-size: 1.6rem; font-weight: 700;
+  color: var(--white); margin: 4px 0;
+  letter-spacing: -0.01em;
+}
+
+/* Tables - Technical Data Sheets */
+.table-wrap { overflow-x: auto; margin-bottom: 28px; }
+table {
+  width: 100%; border-collapse: collapse; font-size: 0.8rem;
+}
+thead th {
+  background: var(--navy-raised); color: var(--cyan);
+  text-align: left; padding: 10px 14px; font-weight: 600;
+  font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.08em;
+  border-bottom: 1px solid rgba(0,212,168,0.3);
+}
+tbody td {
+  padding: 8px 14px; border-bottom: 1px solid rgba(255,255,255,0.03);
+  color: var(--gray-200); font-weight: 400;
+}
+tbody tr:hover { background: rgba(0,212,168,0.02); }
+td.mono { font-family: var(--font-mono); color: var(--cyan); font-size: 0.75rem; }
+td.highlight { color: var(--cyan); font-weight: 700; }
+
+/* Highlight Box - Status Indicator */
+.highlight-box {
+  background: rgba(0,212,168,0.03);
+  border-left: 2px solid var(--cyan);
+  padding: 16px 20px; margin-bottom: 20px;
+}
+.highlight-box h4 {
+  font-family: var(--font-display); color: var(--cyan); margin-bottom: 8px;
+  font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em;
+}
+.highlight-box p { color: var(--gray-200); font-size: 0.84rem; line-height: 1.6; font-weight: 400; }
+
+/* Priority Items - Warning Indicators */
+.priority-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px;
+}
+.priority-item {
+  padding: 16px; border: 1px solid rgba(255,255,255,0.04);
+  background: rgba(8,24,38,0.35);
+  transition: border-color 0.25s;
+}
+.priority-item:hover { border-color: rgba(255,255,255,0.08); }
+.priority-item .pi-badge {
+  display: inline-block; padding: 1px 8px; font-size: 0.58rem;
+  font-weight: 700; letter-spacing: 0.12em; margin-bottom: 8px;
+  font-family: var(--font-mono);
+}
+.pi-badge.critical { background: rgba(224,85,106,0.15); color: var(--red); border-bottom: 1px solid rgba(224,85,106,0.3); }
+.pi-badge.high { background: rgba(230,168,23,0.12); color: var(--amber); border-bottom: 1px solid rgba(230,168,23,0.3); }
+.pi-badge.medium { background: rgba(0,212,168,0.08); color: var(--cyan); border-bottom: 1px solid rgba(0,212,168,0.3); }
+
+/* Architecture Flow - System Diagram */
+.arch-flow {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 20px; padding: 18px;
+  background: rgba(255,255,255,0.01);
+  border: 1px solid rgba(255,255,255,0.03);
+}
+.arch-node {
+  padding: 10px 16px; border: 1px solid rgba(0,212,168,0.15);
+  text-align: center; min-width: 88px;
+  background: rgba(0,212,168,0.02);
+  transition: border-color 0.25s;
+}
+.arch-node:hover { border-color: rgba(0,212,168,0.4); }
+.arch-node .an-title { font-family: var(--font-display); font-weight: 600; color: var(--white); font-size: 0.78rem; }
+.arch-node .an-desc { font-size: 0.65rem; color: var(--gray-400); margin-top: 3px; font-family: var(--font-mono); }
+.arch-arrow {
+  color: var(--cyan); font-size: 1rem; font-weight: 600;
+  font-family: var(--font-mono);
+}
+
+/* Two Column */
+.two-col {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 28px;
+}
+
+/* Section Label */
+.sec-label {
+  color: var(--cyan); margin-bottom: 14px;
+  font-family: var(--font-mono); font-size: 0.62rem; font-weight: 500;
+  letter-spacing: 0.14em; border-bottom: 1px solid rgba(0,212,168,0.15);
+  padding-bottom: 8px; display: inline-block;
+}
+
+/* Scroll Reveal - Staggered Entrance */
+.reveal {
+  opacity: 0; transform: translateY(20px); filter: blur(4px);
+  transition: opacity 0.55s ease-out, transform 0.55s ease-out, filter 0.55s ease-out;
+}
+.reveal.visible { opacity: 1; transform: translateY(0); filter: blur(0); }
+.reveal-delay-1 { transition-delay: 0.08s; }
+.reveal-delay-2 { transition-delay: 0.16s; }
+.reveal-delay-3 { transition-delay: 0.24s; }
+.reveal-delay-4 { transition-delay: 0.32s; }
+
+/* Print */
+@media print {
+  #sidebar, #progress-bar, #lang-toggle, body::after, body::before { display: none; }
+  #main { margin-left: 0; }
+  .section { min-height: auto; padding: 18px 0; page-break-inside: avoid; }
+  body { background: white; color: #1a1a1a; font-size: 10px; }
+  .section:nth-child(odd), .section:nth-child(even) { background: white; }
+  .sec-title { color: #1a1a1a; }
+  .card { border: 1px solid #ddd; background: #fafafa; }
+  .reveal { opacity: 1; transform: none; filter: none; }
+}
+@media (max-width: 768px) {
+  #sidebar { display: none; }
+  #main { margin-left: 0; }
+  .section { padding: 48px 20px 40px; }
+  .sec-title { font-size: 1.3rem; }
+  #hero h1 { font-size: 1.5rem; }
+  .two-col { grid-template-columns: 1fr; }
+  .hero-stats { flex-wrap: wrap; gap: 28px; }
+  #hero { padding: 48px 20px 40px; }
+  #lang-toggle { top: 10px; right: 12px; }
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<div id="lang-toggle">
+  <button id="btn-zh" class="active" onclick="switchLang('zh')">中文</button>
+  <button id="btn-en" onclick="switchLang('en')">EN</button>
+  <button id="btn-de" onclick="switchLang('de')">DE</button>
+</div>
+
+<nav id="sidebar">
+  <a class="dot active" href="#hero" data-sec="0"><span class="tooltip">封面</span></a>
+  <a class="dot" href="#mod1" data-sec="1"><span class="tooltip">01</span></a>
+  <a class="dot" href="#mod2" data-sec="2"><span class="tooltip">02</span></a>
+  <a class="dot" href="#mod3" data-sec="3"><span class="tooltip">03</span></a>
+  <a class="dot" href="#mod4" data-sec="4"><span class="tooltip">04</span></a>
+  <a class="dot" href="#mod5" data-sec="5"><span class="tooltip">05</span></a>
+  <a class="dot" href="#mod6" data-sec="6"><span class="tooltip">06</span></a>
+  <a class="dot" href="#mod7" data-sec="7"><span class="tooltip">07</span></a>
+  <a class="dot" href="#mod8" data-sec="8"><span class="tooltip">08</span></a>
+</nav>
+
+<div id="main">
+
+<!-- ====== HERO ====== -->
+<section class="section" id="hero">
+  <div class="hero-label">HUAWEI DIGITAL ENERGY · AIDC SOURCE-GRID-LOAD-STORAGE</div>
+  <h1 data-en="Maincubes <span>AIDC Source-Grid-Load-Storage</span> Strategic Insight Report"
+      data-de="Maincubes <span>AIDC Source-Grid-Load-Storage</span> Strategisches Insight-Report"
+      data-zh="Maincubes <span>AIDC 源网荷储</span> 战略洞察报告">Maincubes <span>AIDC 源网荷储</span> 战略洞察报告</h1>
+  <div class="hero-meta">
+    <span data-en="Prepared for: Maincubes AG · Date: June 2026 · Methodology: Huawei 7-Module Customer Insight Framework"
+          data-de="Erstellt für: Maincubes AG · Datum: Juni 2026 · Methodik: Huawei 7-Module Kunden-Insight-Framework"
+          data-zh="交付对象：Maincubes AG · 日期：2026 年 6 月 · 方法论：华为 7 模块客户洞察框架">交付对象：Maincubes AG · 日期：2026 年 6 月 · 方法论：华为 7 模块客户洞察框架</span>
+  </div>
+  <div class="hero-stats reveal">
+    <div><div class="hero-stat-val">~400 MW</div><div class="hero-stat-lbl" data-en="Platform Capacity" data-de="Plattform-Kapazität" data-zh="平台容量">平台容量</div></div>
+    <div><div class="hero-stat-val">&lt;1.2</div><div class="hero-stat-lbl" data-en="Target PUE" data-de="Ziel-PUE" data-zh="目标 PUE">目标 PUE</div></div>
+    <div><div class="hero-stat-val">8</div><div class="hero-stat-lbl" data-en="Sites Across EU" data-de="Standorte in EU" data-zh="欧洲站点">欧洲站点</div></div>
+    <div><div class="hero-stat-val">€2.475B</div><div class="hero-stat-lbl" data-en="Platform Financing" data-de="Plattform-Finanzierung" data-zh="平台融资">平台融资</div></div>
+  </div>
+</section>
+
+<!-- ====== MODULE 1 ====== -->
+<section class="section" id="mod1">
+  <div class="sec-num" data-en="MODULE 01" data-de="MODUL 01" data-zh="模块 01">模块 01</div>
+  <h2 class="sec-title" data-en="Customer Strategy &amp; Values Insight" data-de="Kundenstrategie &amp; Werte-Insight" data-zh="客户战略与价值观洞察">客户战略与价值观洞察</h2>
+  <p class="sec-subtitle" data-en="Decoding Maincubes' strategic DNA — from colocation operator to AI/HPC-native infrastructure platform, driven by the vision of 'Creating Smartest Places'."
+     data-de="Entschlüsselung der strategischen DNA von Maincubes — vom Colocation-Betreiber zur KI-nativen Infrastrukturplattform."
+     data-zh="解码 Maincubes 的战略基因——从托管运营商到 AI/HPC 原生基础设施平台，由「Creating Smartest Places」愿景驱动。">解码 Maincubes 的战略基因——从托管运营商到 AI/HPC 原生基础设施平台，由「Creating Smartest Places」愿景驱动。</p>
+  <div class="divider"></div>
+  <div class="two-col">
+    <div class="reveal">
+      <div class="highlight-box">
+        <h4 data-en="Core Vision" data-de="Kernvision" data-zh="核心愿景">核心愿景</h4>
+        <p data-en="&ldquo;Creating Smartest Places&rdquo; — Maincubes positions data centers not as passive infrastructure but as active enablers of digital sovereignty and AI innovation in Europe."
+           data-de="&bdquo;Creating Smartest Places&rdquo; — Maincubes positioniert Rechenzentren als aktive Wegbereiter digitaler Souveränität und KI-Innovation."
+           data-zh="「Creating Smartest Places」——Maincubes 将数据中心定位为欧洲数字主权和 AI 创新的主动推动者，而非被动基础设施。">「Creating Smartest Places」——Maincubes 将数据中心定位为欧洲数字主权和 AI 创新的主动推动者，而非被动基础设施。</p>
+      </div>
+      <div class="highlight-box">
+        <h4 data-en="Strategic Pivot (2022–2026)" data-de="Strategischer Schwenk (2022–2026)" data-zh="战略转型（2022–2026）">战略转型（2022–2026）</h4>
+        <p data-en="From general-purpose colocation to AI/HPC-specialized infrastructure. All new builds (FRA03, FRA04, BER02) are liquid-cooling-native, targeting 40–100+ kW/rack densities. The €2.475B platform financing (Jan 2026) underwrites this transformation."
+           data-de="Von allgemeiner Colocation zu KI-spezialisierter Infrastruktur. Alle Neubauten sind flüssigkeitskühlungs-nativ, ausgelegt auf 40–100+ kW/Rack."
+           data-zh="从通用托管到 AI/HPC 专用基础设施。所有新建项目（FRA03、FRA04、BER02）均为液冷原生设计，目标机柜密度 40–100+ kW。€24.75 亿平台融资（2026 年 1 月）为这一转型提供资金保障。">从通用托管到 AI/HPC 专用基础设施。所有新建项目（FRA03、FRA04、BER02）均为液冷原生设计，目标机柜密度 40–100+ kW。€24.75 亿平台融资（2026 年 1 月）为这一转型提供资金保障。</p>
+      </div>
+    </div>
+    <div class="reveal reveal-delay-1">
+      <div class="sec-label" data-en="STRATEGY–AIDC ALIGNMENT" data-de="STRATEGIE–AIDC-AUSRICHTUNG" data-zh="战略与 AIDC 对齐">战略与 AIDC 对齐</div>
+      <table>
+        <thead><tr><th data-en="Strategic Goal" data-de="Strategisches Ziel" data-zh="战略目标">战略目标</th><th data-en="AIDC Energy Implication" data-de="AIDC-Energie-Implikation" data-zh="AIDC 能源影响">AIDC 能源影响</th></tr></thead>
+        <tbody>
+          <tr><td data-en="Green Operations" data-de="Grüner Betrieb" data-zh="绿色运营">绿色运营</td><td data-en="100% RE + PUE &lt;1.2 + waste heat monetization" data-de="100% EE + PUE &lt;1,2 + Abwärme-Monetarisierung" data-zh="100% 可再生能源 + PUE&lt;1.2 + 废热商品化">100% 可再生能源 + PUE&lt;1.2 + 废热商品化</td></tr>
+          <tr><td data-en="Digital Sovereignty" data-de="Digitale Souveränität" data-zh="数字主权">数字主权</td><td data-en="On-site power generation + BESS for grid independence" data-de="Eigenstromerzeugung + BESS für Netzunabhängigkeit" data-zh="现场发电 + BESS 实现电网独立性">现场发电 + BESS 实现电网独立性</td></tr>
+          <tr><td data-en="Operational Excellence" data-de="Operative Exzellenz" data-zh="运营卓越">运营卓越</td><td data-en="AI-driven cooling optimization, predictive maintenance" data-de="KI-gesteuerte Kühloptimierung, vorausschauende Wartung" data-zh="AI 驱动冷却优化、预测性维护">AI 驱动冷却优化、预测性维护</td></tr>
+          <tr><td data-en="Scalable Growth" data-de="Skalierbares Wachstum" data-zh="可扩展增长">可扩展增长</td><td data-en="Modular power architecture, phased capacity deployment" data-de="Modulare Stromarchitektur, phasenweise Kapazitätsbereitstellung" data-zh="模块化电力架构，分阶段容量部署">模块化电力架构，分阶段容量部署</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="sec-label reveal" data-en="CORE COMPETITIVE ADVANTAGES" data-de="KERNWETTBEWERBSVORTEILE" data-zh="核心竞争优势">核心竞争优势</div>
+  <div class="card-grid">
+    <div class="card reveal">
+      <h4 data-en="DTCP Financial Backing" data-de="DTCP-Finanzkraft" data-zh="DTCP 金融支持">DTCP 金融支持</h4>
+      <div class="metric">€5B AUM</div>
+      <p data-en="DTCP's infrastructure fund provides patient capital and institutional banking relationships, enabling €2.475B platform-level debt across 11 banks."
+         data-de="DTCPs Infrastrukturfonds stellt geduldiges Kapital und institutionelle Bankbeziehungen bereit."
+         data-zh="DTCP 基础设施基金提供耐心资本和机构银行关系，使 11 家银行联合体达成 €24.75 亿平台级债务融资。">DTCP 基础设施基金提供耐心资本和机构银行关系，使 11 家银行联合体达成 €24.75 亿平台级债务融资。</p>
+    </div>
+    <div class="card reveal reveal-delay-1">
+      <h4 data-en="Government Client Anchoring" data-de="Staatskunden-Verankerung" data-zh="政府客户锚定">政府客户锚定</h4>
+      <div class="metric">ITZBund</div>
+      <p data-en="Long-term leases with German federal IT service provider at BER01 and FRA02 create stable cash flows that underpin debt financing and expansion."
+         data-de="Langfristige Mietverträge mit dem deutschen IT-Dienstleister des Bundes schaffen stabile Cashflows."
+         data-zh="与德国联邦 IT 服务商在 BER01 和 FRA02 的长期租约创造稳定现金流，支撑债务融资和扩张。">与德国联邦 IT 服务商在 BER01 和 FRA02 的长期租约创造稳定现金流，支撑债务融资和扩张。</p>
+    </div>
+    <div class="card reveal reveal-delay-2">
+      <h4 data-en="EU Taxonomy First-Mover" data-de="EU-Taxonomie-Vorreiter" data-zh="EU 分类法先行者">EU 分类法先行者</h4>
+      <div class="metric" data-en="2 Sites" data-de="2 Standorte" data-zh="2 个站点">2 个站点</div>
+      <p data-en="FRA02 and BER01 are EU Taxonomy-aligned, unlocking Sustainability-Linked Loan rate reductions and institutional ESG fund allocations."
+         data-de="FRA02 und BER01 sind EU-Taxonomie-konform und ermöglichen Zinssenkungen bei Sustainability-Linked Loans."
+         data-zh="FRA02 和 BER01 已获 EU 分类法认证，解锁可持续发展挂钩贷款利率优惠和机构 ESG 基金配置。">FRA02 和 BER01 已获 EU 分类法认证，解锁可持续发展挂钩贷款利率优惠和机构 ESG 基金配置。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ====== MODULE 2 ====== -->
+<section class="section" id="mod2">
+  <div class="sec-num" data-en="MODULE 02" data-de="MODUL 02" data-zh="模块 02">模块 02</div>
+  <h2 class="sec-title" data-en="Current State AIDC Insight" data-de="Ist-Zustand AIDC-Insight" data-zh="客户现状 AIDC 洞察">客户现状 AIDC 洞察</h2>
+  <p class="sec-subtitle" data-en="Analyzing Maincubes' existing 4-site, 28MW operating portfolio — infrastructure configuration, operational metrics, and pain point diagnosis."
+     data-de="Analyse des bestehenden 4-Standort-Portfolios mit 28 MW — Infrastrukturkonfiguration, Betriebskennzahlen und Problemdiagnose."
+     data-zh="分析 Maincubes 现有 4 站点、28MW 运营组合——基础设施配置、运营指标及痛点诊断。">分析 Maincubes 现有 4 站点、28MW 运营组合——基础设施配置、运营指标及痛点诊断。</p>
+  <div class="divider"></div>
+  <div class="sec-label reveal" data-en="OPERATING PORTFOLIO OVERVIEW" data-de="BETRIEBSPORTFOLIO-ÜBERSICHT" data-zh="运营组合概览">运营组合概览</div>
+  <div class="table-wrap reveal">
+    <table>
+      <thead><tr>
+        <th data-en="Site" data-de="Standort" data-zh="站点">站点</th><th data-en="Location" data-de="Ort" data-zh="位置">位置</th><th data-en="Capacity" data-de="Kapazität" data-zh="容量">容量</th>
+        <th>PUE</th><th data-en="Cooling" data-de="Kühlung" data-zh="冷却">冷却</th><th data-en="Power Architecture" data-de="Stromarchitektur" data-zh="供电架构">供电架构</th>
+        <th data-en="Client Type" data-de="Kundentyp" data-zh="客户类型">客户类型</th><th data-en="Live" data-de="In Betrieb" data-zh="投产">投产</th>
+      </tr></thead>
+      <tbody>
+        <tr><td class="mono">FRA01</td><td data-en="Frankfurt" data-de="Frankfurt" data-zh="法兰克福">法兰克福</td><td class="mono">6 MW</td><td>≤1.3</td><td data-en="Air (Kyoto Wheel)" data-de="Luft (Kyoto Wheel)" data-zh="风冷（Kyoto Wheel）">风冷（Kyoto Wheel）</td><td data-en="Traditional UPS" data-de="Traditionelle USV" data-zh="传统 UPS">传统 UPS</td><td data-en="Colocation" data-de="Colocation" data-zh="托管">托管</td><td>2017</td></tr>
+        <tr><td class="mono">FRA02</td><td data-en="Frankfurt" data-de="Frankfurt" data-zh="法兰克福">法兰克福</td><td class="mono">8 MW</td><td>≤1.3</td><td data-en="Cool Wall" data-de="Cool Wall" data-zh="Cool Wall">Cool Wall</td><td data-en="Rotary UPS + IP Bus" data-de="Rotations-USV + IP-Bus" data-zh="旋转 UPS + IP 总线">旋转 UPS + IP 总线</td><td data-en="Gov Single-Tenant" data-de="Behörde Einzelmieter" data-zh="政府单租户">政府单租户</td><td>2024</td></tr>
+        <tr><td class="mono">BER01</td><td data-en="Berlin" data-de="Berlin" data-zh="柏林">柏林</td><td class="mono">9 MW</td><td>≤1.26</td><td data-en="Cool Wall + Liquid" data-de="Cool Wall + Flüssig" data-zh="Cool Wall + 液冷">Cool Wall + 液冷</td><td data-en="Rotary UPS + IP Bus" data-de="Rotations-USV + IP-Bus" data-zh="旋转 UPS + IP 总线">旋转 UPS + IP 总线</td><td data-en="Gov (ITZBund)" data-de="Behörde (ITZBund)" data-zh="政府（ITZBund）">政府（ITZBund）</td><td>2025</td></tr>
+        <tr><td class="mono">AMS01</td><td data-en="Amsterdam" data-de="Amsterdam" data-zh="阿姆斯特丹">阿姆斯特丹</td><td class="mono">5 MW</td><td>≤1.6</td><td data-en="Air + Immersion Demo" data-de="Luft + Immersions-Demo" data-zh="风冷 + 浸没式 Demo">风冷 + 浸没式 Demo</td><td data-en="Traditional UPS" data-de="Traditionelle USV" data-zh="传统 UPS">传统 UPS</td><td data-en="Colocation (OCP Ready)" data-de="Colocation (OCP Ready)" data-zh="托管（OCP Ready）">托管（OCP Ready）</td><td>2018</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="two-col">
+    <div class="reveal">
+      <div class="sec-label" data-en="KEY OPERATIONAL METRICS" data-de="WICHTIGE BETRIEBSKENNZAHLEN" data-zh="关键运营指标">关键运营指标</div>
+      <table>
+        <thead><tr><th data-en="Metric" data-de="Kennzahl" data-zh="指标">指标</th><th data-en="Current" data-de="Aktuell" data-zh="当前">当前</th><th data-en="Target" data-de="Ziel" data-zh="目标">目标</th><th data-en="Gap" data-de="Lücke" data-zh="差距">差距</th></tr></thead>
+        <tbody>
+          <tr><td data-en="Platform PUE (avg)" data-de="Plattform-PUE (Ø)" data-zh="平台 PUE（均值）">平台 PUE（均值）</td><td class="mono">~1.37</td><td class="mono">&lt;1.2</td><td class="mono">+0.17</td></tr>
+          <tr><td data-en="Renewable Energy Share" data-de="Anteil Erneuerbare Energie" data-zh="可再生能源占比">可再生能源占比</td><td class="mono">100%</td><td class="mono">100%</td><td class="mono" style="color:var(--cyan);">✓</td></tr>
+          <tr><td data-en="Annual Energy Cost" data-de="Jährliche Energiekosten" data-zh="年度能源成本">年度能源成本</td><td class="mono" data-en="~€35M/yr" data-de="~€35 Mio./Jahr" data-zh="~€3500 万/年">~€3500 万/年</td><td data-en="Optimize via BESS" data-de="Optimieren via BESS" data-zh="通过 BESS 优化">通过 BESS 优化</td><td data-en="TBD" data-de="Offen" data-zh="待定">待定</td></tr>
+          <tr><td data-en="Supply Reliability" data-de="Versorgungssicherheit" data-zh="供电可靠性">供电可靠性</td><td class="mono">99.999%+</td><td class="mono">100% SLA</td><td class="mono" style="color:var(--cyan);" data-en="Minimal" data-de="Minimal" data-zh="极小">极小</td></tr>
+          <tr><td data-en="EU Taxonomy Sites" data-de="EU-Taxonomie-Standorte" data-zh="EU 分类法站点">EU 分类法站点</td><td class="mono">2/4</td><td class="mono">100%</td><td class="mono">+2</td></tr>
+          <tr><td data-en="Waste Heat Recovery" data-de="Abwärmerückgewinnung" data-zh="废热回收">废热回收</td><td class="mono">2/4</td><td class="mono" data-en="All new" data-de="Alle neuen" data-zh="全部新建">全部新建</td><td data-en="In progress" data-de="In Bearbeitung" data-zh="推进中">推进中</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="reveal reveal-delay-1">
+      <div class="sec-label" data-en="PAIN POINT DIAGNOSIS" data-de="PROBLEMDIAGNOSE" data-zh="痛点诊断">痛点诊断</div>
+      <div class="priority-grid">
+        <div class="priority-item">
+          <div class="pi-badge critical" data-en="CRITICAL" data-de="KRITISCH" data-zh="关键">关键</div>
+          <p style="color:var(--white);font-weight:700;font-size:0.84rem;" data-en="Legacy Site Power Density Ceiling" data-de="Leistungsdichte-Grenze Altstandorte" data-zh="老旧站点功率密度上限">老旧站点功率密度上限</p>
+          <p style="font-size:0.78rem;color:var(--gray-400);" data-en="FRA01 (5-10kW/rack) and AMS01 cannot support AI/HPC workloads without major electrical retrofit."
+             data-de="FRA01 und AMS01 können KI-Workloads ohne große elektrische Nachrüstung nicht unterstützen."
+             data-zh="FRA01（5–10kW/机柜）和 AMS01 在不进行重大电气改造的情况下无法支持 AI/HPC 工作负载。">FRA01（5–10kW/机柜）和 AMS01 在不进行重大电气改造的情况下无法支持 AI/HPC 工作负载。</p>
+        </div>
+        <div class="priority-item">
+          <div class="pi-badge high" data-en="HIGH" data-de="HOCH" data-zh="高">高</div>
+          <p style="color:var(--white);font-weight:700;font-size:0.84rem;" data-en="German Electricity Price Volatility" data-de="Deutsche Strompreis-Volatilität" data-zh="德国电价波动">德国电价波动</p>
+          <p style="font-size:0.78rem;color:var(--gray-400);" data-en="Germany has among the highest industrial electricity prices in Europe (~€0.18-0.25/kWh). 28MW operating base translates to significant annual cost exposure."
+             data-de="Deutschland hat mit die höchsten Industriestrompreise in Europa (~0,18–0,25 €/kWh)."
+             data-zh="德国拥有欧洲最高的工业电价（~€0.18–0.25/kWh）。28MW 运营基础意味着巨大的年度成本敞口。">德国拥有欧洲最高的工业电价（~€0.18–0.25/kWh）。28MW 运营基础意味着巨大的年度成本敞口。</p>
+        </div>
+        <div class="priority-item">
+          <div class="pi-badge high" data-en="HIGH" data-de="HOCH" data-zh="高">高</div>
+          <p style="color:var(--white);font-weight:700;font-size:0.84rem;" data-en="AMS01 PUE Drift" data-de="AMS01 PUE-Abweichung" data-zh="AMS01 PUE 偏移">AMS01 PUE 偏移</p>
+          <p style="font-size:0.78rem;color:var(--gray-400);" data-en="PUE of 1.6 is significantly above the new-build target of &lt;1.2. Creates an ESG reporting liability as other sites improve."
+             data-de="PUE von 1,6 liegt deutlich über dem Neubau-Ziel von &lt;1,2. Schafft eine ESG-Berichtslast."
+             data-zh="PUE 1.6 明显高于新建目标 &lt;1.2。在其他站点持续改善的同时，形成了 ESG 报告的负累。">PUE 1.6 明显高于新建目标 &lt;1.2。在其他站点持续改善的同时，形成了 ESG 报告的负累。</p>
+        </div>
+        <div class="priority-item">
+          <div class="pi-badge medium" data-en="MEDIUM" data-de="MITTEL" data-zh="中">中</div>
+          <p style="color:var(--white);font-weight:700;font-size:0.84rem;" data-en="Cooling Technology Fragmentation" data-de="Fragmentierung der Kühltechnologie" data-zh="冷却技术碎片化">冷却技术碎片化</p>
+          <p style="font-size:0.78rem;color:var(--gray-400);" data-en="Four different cooling approaches across 4 operating sites create maintenance complexity."
+             data-de="Vier verschiedene Kühlansätze an 4 Standorten schaffen Wartungskomplexität."
+             data-zh="4 个运营站点采用四种不同的冷却方案，造成运维复杂度。">4 个运营站点采用四种不同的冷却方案，造成运维复杂度。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== MODULE 3 ====== -->
+<section class="section" id="mod3">
+  <div class="sec-num" data-en="MODULE 03" data-de="MODUL 03" data-zh="模块 03">模块 03</div>
+  <h2 class="sec-title" data-en="Customer Planning Insight" data-de="Kundenplanungs-Insight" data-zh="客户规划洞察">客户规划洞察</h2>
+  <p class="sec-subtitle" data-en="Mapping Maincubes' expansion roadmap — from 28MW operating to ~400MW platform, with 4 new sites targeting AI/HPC and hyperscale workloads through 2029+."
+     data-de="Expansions-Roadmap von Maincubes — von 28 MW auf ~400 MW Plattform, mit 4 neuen Standorten für KI und Hyperscale bis 2029+."
+     data-zh="绘制 Maincubes 扩展路线图——从 28MW 运营容量到 ~400MW 平台，4 个新站点面向 AI/HPC 和超大规模工作负载，持续至 2029 年以后。">绘制 Maincubes 扩展路线图——从 28MW 运营容量到 ~400MW 平台，4 个新站点面向 AI/HPC 和超大规模工作负载，持续至 2029 年以后。</p>
+  <div class="divider"></div>
+  <div class="sec-label reveal" data-en="EXPANSION PIPELINE" data-de="EXPANSIONS-PIPELINE" data-zh="扩展管线">扩展管线</div>
+  <div class="table-wrap reveal">
+    <table>
+      <thead><tr>
+        <th data-en="Site" data-de="Standort" data-zh="站点">站点</th><th data-en="Capacity" data-de="Kapazität" data-zh="容量">容量</th><th data-en="Type" data-de="Typ" data-zh="类型">类型</th>
+        <th data-en="PUE Target" data-de="PUE-Ziel" data-zh="PUE 目标">PUE 目标</th><th data-en="Power Density" data-de="Leistungsdichte" data-zh="功率密度">功率密度</th>
+        <th data-en="Key Milestone" data-de="Meilenstein" data-zh="关键里程碑">关键里程碑</th><th data-en="Status" data-de="Status" data-zh="状态">状态</th>
+      </tr></thead>
+      <tbody>
+        <tr><td class="mono">FRA03</td><td class="mono">16 MW</td><td data-en="AI/HPC Liquid-Native" data-de="KI/HPC Flüssig-Nativ" data-zh="AI/HPC 液冷原生">AI/HPC 液冷原生</td><td class="mono">&lt;1.2</td><td class="mono">40+ kW/rack</td><td data-en="2026 Q3 Delivery" data-de="Lieferung Q3 2026" data-zh="2026 Q3 交付">2026 Q3 交付</td><td class="highlight" data-en="Under Construction" data-de="Im Bau" data-zh="建设中">建设中</td></tr>
+        <tr><td class="mono">BER02</td><td class="mono">144–186 MW</td><td data-en="AI/HPC Campus" data-de="KI/HPC Campus" data-zh="AI/HPC 园区">AI/HPC 园区</td><td class="mono">&lt;1.2</td><td class="mono">40–100+ kW/rack</td><td data-en="2028 Q1 First Building" data-de="Q1 2028 Erstes Gebäude" data-zh="2028 Q1 首栋">2028 Q1 首栋</td><td class="highlight" data-en="Under Construction" data-de="Im Bau" data-zh="建设中">建设中</td></tr>
+        <tr><td class="mono">FRA04</td><td class="mono">40 MW</td><td data-en="Hyperscale" data-de="Hyperscale" data-zh="超大规模">超大规模</td><td class="mono">&lt;1.2</td><td class="mono">40–80 kW/rack</td><td data-en="2029 Q1" data-de="Q1 2029" data-zh="2029 Q1">2029 Q1</td><td data-en="Planning" data-de="Planung" data-zh="规划中">规划中</td></tr>
+        <tr><td class="mono">FRA05</td><td class="mono">75 MW</td><td data-en="Hyperscale" data-de="Hyperscale" data-zh="超大规模">超大规模</td><td class="mono">TBD</td><td class="mono">TBD</td><td data-en="TBD" data-de="Offen" data-zh="待定">待定</td><td data-en="Pipeline" data-de="Pipeline" data-zh="储备">储备</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="two-col">
+    <div class="reveal">
+      <div class="sec-label" data-en="POWER BEFORE COMPUTE" data-de="POWER BEFORE COMPUTE" data-zh="电力先于算力">电力先于算力</div>
+      <div class="highlight-box">
+        <p data-en="Maincubes prioritizes securing power and land ahead of customer demand. This de-risks the development pipeline and positions them as the partner of choice for hyperscalers facing 2–4 year grid connection lead times across Europe."
+           data-de="Maincubes priorisiert die Sicherung von Strom und Land vor der Kundennachfrage — entriskiert die Pipeline."
+           data-zh="Maincubes 将电力和土地资源保障置于客户需求之前。这降低了开发管线的风险，并将其定位为超大规模客户的首选合作伙伴——这些客户在欧洲面临 2–4 年的电网接入前置周期。">Maincubes 将电力和土地资源保障置于客户需求之前。这降低了开发管线的风险，并将其定位为超大规模客户的首选合作伙伴——这些客户在欧洲面临 2–4 年的电网接入前置周期。</p>
+      </div>
+      <table>
+        <thead><tr><th data-en="Planning Aspect" data-de="Planungsaspekt" data-zh="规划维度">规划维度</th><th data-en="Energy System Requirement" data-de="Energiesystem-Anforderung" data-zh="能源系统需求">能源系统需求</th></tr></thead>
+        <tbody>
+          <tr><td data-en="Grid Capacity" data-de="Netzkapazität" data-zh="电网容量">电网容量</td><td data-en="110kV substation (BER02), scalable to 400MW+" data-de="110kV-Umspannwerk (BER02), skalierbar auf 400MW+" data-zh="110kV 变电站（BER02），可扩展至 400MW+">110kV 变电站（BER02），可扩展至 400MW+</td></tr>
+          <tr><td data-en="Power Architecture" data-de="Stromarchitektur" data-zh="电力架构">电力架构</td><td data-en="Modular, phased deployment to match tenant uptake" data-de="Modular, phasenweise je nach Mieterbedarf" data-zh="模块化分阶段部署，匹配租户入驻节奏">模块化分阶段部署，匹配租户入驻节奏</td></tr>
+          <tr><td data-en="Cooling Infrastructure" data-de="Kühlinfrastruktur" data-zh="冷却基础设施">冷却基础设施</td><td data-en="Native liquid cooling (D2C + Immersion) from Day 1" data-de="Native Flüssigkühlung (D2C + Immersion) ab Tag 1" data-zh="从 Day 1 即原生液冷（D2C + 浸没式）">从 Day 1 即原生液冷（D2C + 浸没式）</td></tr>
+          <tr><td data-en="Renewable Integration" data-de="EE-Integration" data-zh="可再生能源集成">可再生能源集成</td><td data-en="On-site solar + direct wind PPA + BESS buffer" data-de="Solar vor Ort + direkte Wind-PPA + BESS-Puffer" data-zh="现场光伏 + 直连风电 PPA + BESS 缓冲">现场光伏 + 直连风电 PPA + BESS 缓冲</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="reveal reveal-delay-1">
+      <div class="sec-label" data-en="PLANNING RISK FORECAST" data-de="PLANUNGSRISIKO-PROGNOSE" data-zh="规划风险预测">规划风险预测</div>
+      <div class="priority-grid">
+        <div class="priority-item">
+          <div class="pi-badge critical" data-en="CRITICAL" data-de="KRITISCH" data-zh="关键">关键</div>
+          <p style="color:var(--white);font-weight:700;font-size:0.84rem;" data-en="Grid Connection Lead Time" data-de="Netzanschluss-Vorlaufzeit" data-zh="电网接入前置周期">电网接入前置周期</p>
+          <p style="font-size:0.78rem;color:var(--gray-400);" data-en="BER02's 200MW connection via E.DIS is secured, but scaling to 400MW+ faces 3–5 year approval cycles."
+             data-de="BER02s 200MW-Anschluss über E.DIS ist gesichert, Skalierung auf 400MW+ erfordert 3–5 Jahre."
+             data-zh="BER02 通过 E.DIS 的 200MW 连接已确保，但扩展至 400MW+ 可能面临 3–5 年审批周期。">BER02 通过 E.DIS 的 200MW 连接已确保，但扩展至 400MW+ 可能面临 3–5 年审批周期。</p>
+        </div>
+        <div class="priority-item">
+          <div class="pi-badge high" data-en="HIGH" data-de="HOCH" data-zh="高">高</div>
+          <p style="color:var(--white);font-weight:700;font-size:0.84rem;" data-en="Carbon Policy Tightening" data-de="Verschärfung der CO2-Politik" data-zh="碳政策趋严">碳政策趋严</p>
+          <p style="font-size:0.78rem;color:var(--gray-400);" data-en="EU EED recast and German EnEfG impose stringent PUE and waste heat recovery mandates through 2035+."
+             data-de="EU-EED-Neufassung und EnEfG erlegen strenge PUE- und Abwärmenutzungspflichten auf."
+             data-zh="EU 能效指令修订版和德国能效法对 PUE 和废热回收提出了严格要求，需按 2035+ 监管趋势设计。">EU 能效指令修订版和德国能效法对 PUE 和废热回收提出了严格要求，需按 2035+ 监管趋势设计。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== MODULE 4 ====== -->
+<section class="section" id="mod4">
+  <div class="sec-num" data-en="MODULE 04" data-de="MODUL 04" data-zh="模块 04">模块 04</div>
+  <h2 class="sec-title" data-en="Core Value Proposition Analysis" data-de="Kern-Wertversprechen-Analyse" data-zh="核心价值诉求拆解">核心价值诉求拆解</h2>
+  <p class="sec-subtitle" data-en="Deconstructing Maincubes' specific pain points and desired outcomes across AI/HPC hosting, government cloud, and sovereign cloud market segments."
+     data-de="Dekonstruktion der spezifischen Probleme und Ergebnisse in den Segmenten KI-Hosting, Government-Cloud und souveräne Cloud."
+     data-zh="拆解 Maincubes 在 AI/HPC 托管、政府云和主权云细分市场的具体痛点与期望结果。">拆解 Maincubes 在 AI/HPC 托管、政府云和主权云细分市场的具体痛点与期望结果。</p>
+  <div class="divider"></div>
+  <div class="two-col">
+    <div class="reveal">
+      <div class="sec-label" data-en="INDUSTRY-SPECIFIC REQUIREMENTS" data-de="BRANCHENSPEZIFISCHE ANFORDERUNGEN" data-zh="行业特定需求">行业特定需求</div>
+      <table>
+        <thead><tr><th data-en="Segment" data-de="Segment" data-zh="细分市场">细分市场</th><th data-en="Critical Demand" data-de="Kritische Anforderung" data-zh="核心需求">核心需求</th><th data-en="Energy Implication" data-de="Energie-Implikation" data-zh="能源影响">能源影响</th></tr></thead>
+        <tbody>
+          <tr><td data-en="AI/HPC Hyperscale" data-de="KI/HPC Hyperscale" data-zh="AI/HPC 超大规模">AI/HPC 超大规模</td><td data-en="100kW/rack, 24/7 full load" data-de="100kW/Rack, 24/7 Volllast" data-zh="100kW/机柜，全天候满载">100kW/机柜，全天候满载</td><td data-en="Ultra-high power density, continuous cooling, cost optimization" data-de="Ultrahohe Leistungsdichte, kontinuierliche Kühlung" data-zh="超高功率密度、持续冷却、成本优化">超高功率密度、持续冷却、成本优化</td></tr>
+          <tr><td data-en="Government Cloud" data-de="Government Cloud" data-zh="政府云">政府云</td><td data-en="VK3+, physical security, data sovereignty" data-de="VK3+, Sicherheit, Datensouveränität" data-zh="VK3+、物理安全、数据主权">VK3+、物理安全、数据主权</td><td data-en="Multi-layer redundancy, on-site backup, EMAS/Blue Angel" data-de="Mehrschicht-Redundanz, Notstrom, EMAS/Blauer Engel" data-zh="多层冗余、现场备用电源、EMAS/蓝天使认证">多层冗余、现场备用电源、EMAS/蓝天使认证</td></tr>
+          <tr><td data-en="Sovereign Cloud" data-de="Souveräne Cloud" data-zh="主权云">主权云</td><td data-en="German jurisdiction, EU-only data, GDPR++" data-de="Deutsche Gerichtsbarkeit, nur EU-Daten" data-zh="德国司法管辖、仅限欧盟数据、GDPR++">德国司法管辖、仅限欧盟数据、GDPR++</td><td data-en="Isolated power domains, air-gap capability, full audit trail" data-de="Isolierte Stromdomänen, Air-Gap, Audit-Trail" data-zh="隔离电力域、物理气隙能力、完整审计追踪">隔离电力域、物理气隙能力、完整审计追踪</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="reveal reveal-delay-1">
+      <div class="sec-label" data-en="PAIN POINTS &amp; TARGETS" data-de="PROBLEME &amp; ZIELE" data-zh="痛点与目标">痛点与目标</div>
+      <table>
+        <thead><tr><th data-en="Pain Point" data-de="Problem" data-zh="痛点">痛点</th><th data-en="Current Impact" data-de="Aktuelle Auswirkung" data-zh="当前影响">当前影响</th><th data-en="Target" data-de="Ziel" data-zh="目标">目标</th></tr></thead>
+        <tbody>
+          <tr><td data-en="High Energy Cost" data-de="Hohe Energiekosten" data-zh="高能源成本">高能源成本</td><td data-en="~€35M/yr at 28MW, scaling to ~€500M/yr at 400MW" data-de="~35 Mio. €/J bei 28MW, ~500 Mio. €/J bei 400MW" data-zh="28MW 约 €3500 万/年→400MW 约 €5 亿/年">28MW 约 €3500 万/年→400MW 约 €5 亿/年</td><td data-en="30%+ reduction via BESS + on-site RE" data-de="30%+ Reduktion durch BESS + EE" data-zh="BESS + 可再生能源降本 30%+">BESS + 可再生能源降本 30%+</td></tr>
+          <tr><td data-en="Grid Dependency" data-de="Netzabhängigkeit" data-zh="电网依赖">电网依赖</td><td data-en="Price-taker, single point of failure" data-de="Preisnehmer, Single Point of Failure" data-zh="价格被动接受者，单点故障风险">价格被动接受者，单点故障风险</td><td data-en="Multi-source mix with islanding" data-de="Multi-Quellen-Mix mit Inselfähigkeit" data-zh="多源能源组合，孤岛运行能力">多源能源组合，孤岛运行能力</td></tr>
+          <tr><td data-en="Carbon Compliance" data-de="CO2-Compliance" data-zh="碳合规">碳合规</td><td data-en="CSRD Scope 3 gap, 2/8 sites Taxonomy" data-de="CSRD Scope-3-Lücke, 2/8 Taxonomie" data-zh="CSRD Scope 3 缺口，2/8 站点认证">CSRD Scope 3 缺口，2/8 站点认证</td><td data-en="Full Taxonomy, Scope 1–3 auditable" data-de="Volle Taxonomie, Scope 1–3 prüfbar" data-zh="全站点认证，Scope 1–3 可审计">全站点认证，Scope 1–3 可审计</td></tr>
+          <tr><td data-en="Cooling at Scale" data-de="Kühlung im Großmaßstab" data-zh="大规模冷却">大规模冷却</td><td data-en="Fragmented tech stack, AMS01 PUE 1.6" data-de="Fragmentierter Stack, AMS01 PUE 1,6" data-zh="技术栈碎片化，AMS01 PUE 1.6">技术栈碎片化，AMS01 PUE 1.6</td><td data-en="Unified liquid cooling, PUE &lt;1.2" data-de="Einheitliche Flüssigkühlung, PUE &lt;1,2" data-zh="统一液冷，平台 PUE &lt;1.2">统一液冷，平台 PUE &lt;1.2</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="highlight-box reveal">
+    <h4 data-en="Implicit Demand: Elastic Power Scaling" data-de="Implizite Nachfrage: Elastische Leistungsskalierung" data-zh="隐性需求：弹性电力扩展">隐性需求：弹性电力扩展</h4>
+    <p data-en="As GPU clusters scale from hundreds to tens of thousands of accelerators, power demand can swing 2–5× within a single cluster allocation cycle. Power distribution must support dynamic reallocation across data halls — a capability traditional colocation cannot provide."
+       data-de="GPU-Cluster können die Leistungsnachfrage um das 2–5-fache schwanken lassen. Modulare Stromarchitektur muss dynamische Umverteilung unterstützen."
+       data-zh="随着 GPU 集群从数百个扩展至数万个，电力需求在单个分配周期内可能波动 2–5 倍。配电系统必须支持跨数据大厅的动态功率重分配——传统托管无法提供此能力。">随着 GPU 集群从数百个扩展至数万个，电力需求在单个分配周期内可能波动 2–5 倍。配电系统必须支持跨数据大厅的动态功率重分配——传统托管无法提供此能力。</p>
+  </div>
+</section>
+
+<!-- ====== MODULE 5 ====== -->
+<section class="section" id="mod5">
+  <div class="sec-num" data-en="MODULE 05" data-de="MODUL 05" data-zh="模块 05">模块 05</div>
+  <h2 class="sec-title" data-en="Business Scenario Matching" data-de="Geschäftsszenario-Abgleich" data-zh="业务场景匹配">业务场景匹配</h2>
+  <p class="sec-subtitle" data-en="Mapping Huawei Source-Grid-Load-Storage technology to three distinct deployment scenarios — greenfield AI campus, high-density infill, and legacy retrofit."
+     data-de="Zuordnung der Huawei Source-Grid-Load-Storage-Technologie zu drei Bereitstellungsszenarien."
+     data-zh="将华为源网荷储技术映射至三种典型部署场景——绿地 AI 园区、高密度增建和存量改造。">将华为源网荷储技术映射至三种典型部署场景——绿地 AI 园区、高密度增建和存量改造。</p>
+  <div class="divider"></div>
+  <div class="card-grid">
+    <div class="card reveal" style="border-left: 2px solid var(--cyan);">
+      <h4 data-en="Scenario A: Greenfield AI Campus" data-de="Szenario A: Grüner KI-Campus" data-zh="场景 A：绿地 AI 园区">场景 A：绿地 AI 园区</h4>
+      <p style="color:var(--gray-400);font-size:0.72rem;margin-bottom:14px;" data-en="Target: BER02 (144–186MW, Nauen)" data-de="Ziel: BER02 (144–186MW, Nauen)" data-zh="目标：BER02（144–186MW，Nauen）">目标：BER02（144–186MW，Nauen）</p>
+      <div class="arch-flow" style="flex-direction:column;align-items:flex-start;gap:8px;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div class="arch-node"><div class="an-title" data-en="Solar PV" data-de="Solar-PV" data-zh="光伏">光伏</div><div class="an-desc" data-en="Intelligent PV" data-de="Intelligente PV" data-zh="智能光伏">智能光伏</div></div>
+          <span class="arch-arrow">+</span>
+          <div class="arch-node"><div class="an-title" data-en="Wind PPA" data-de="Wind-PPA" data-zh="风电 PPA">风电 PPA</div><div class="an-desc" data-en="Nauener Platte" data-de="Nauener Platte" data-zh="Nauener Platte">Nauener Platte</div></div>
+          <span class="arch-arrow">+</span>
+          <div class="arch-node"><div class="an-title">BESS</div><div class="an-desc" data-en="Grid-scale" data-de="Netzgekoppelt" data-zh="电网级">电网级</div></div>
+          <span class="arch-arrow">→</span>
+          <div class="arch-node"><div class="an-title" data-en="Smart Substation" data-de="Smart-USW" data-zh="智能变电站">智能变电站</div><div class="an-desc">110kV</div></div>
+          <span class="arch-arrow">→</span>
+          <div class="arch-node"><div class="an-title" data-en="AI Cluster" data-de="KI-Cluster" data-zh="AI 集群">AI 集群</div><div class="an-desc">100kW/rack</div></div>
+        </div>
+      </div>
+      <p style="font-size:0.82rem;color:var(--gray-300);" data-en="On-site solar + regional wind PPA + large-scale BESS for peak shaving and renewable smoothing + 110kV smart substation. BESS enables energy arbitrage (€40–80/MWh spread)."
+         data-de="Solar vor Ort + regionale Wind-PPA + BESS + 110kV-Smart-USW. BESS ermöglicht Energiearbitrage."
+         data-zh="现场光伏 + 区域风电 PPA + 大型 BESS 削峰填谷 + 110kV 智能变电站。BESS 实现能源套利（€40–80/MWh 峰谷差价）。">现场光伏 + 区域风电 PPA + 大型 BESS 削峰填谷 + 110kV 智能变电站。BESS 实现能源套利（€40–80/MWh 峰谷差价）。</p>
+    </div>
+    <div class="card reveal reveal-delay-1" style="border-left: 2px solid var(--cyan);">
+      <h4 data-en="Scenario B: High-Density AI Infill" data-de="Szenario B: Hochverdichtungs-KI" data-zh="场景 B：高密度 AI 增建">场景 B：高密度 AI 增建</h4>
+      <p style="color:var(--gray-400);font-size:0.72rem;margin-bottom:14px;" data-en="Target: FRA03 (16MW), FRA04 (40MW)" data-de="Ziel: FRA03 (16MW), FRA04 (40MW)" data-zh="目标：FRA03（16MW）、FRA04（40MW）">目标：FRA03（16MW）、FRA04（40MW）</p>
+      <div class="arch-flow" style="flex-direction:column;align-items:flex-start;gap:8px;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div class="arch-node"><div class="an-title" data-en="Grid Import" data-de="Netzbezug" data-zh="电网输入">电网输入</div><div class="an-desc">50Hz</div></div>
+          <span class="arch-arrow">+</span>
+          <div class="arch-node"><div class="an-title" data-en="Liquid Cooling PDU" data-de="Flüssigkühl-PDU" data-zh="液冷配电">液冷配电</div><div class="an-desc" data-en="D2C + Immersion" data-de="D2C + Immersion" data-zh="D2C + 浸没式">D2C + 浸没式</div></div>
+          <span class="arch-arrow">+</span>
+          <div class="arch-node"><div class="an-title" data-en="AI Cooling Optimization" data-de="KI-Kühloptimierung" data-zh="AI 冷却优化">AI 冷却优化</div><div class="an-desc" data-en="ML-driven" data-de="ML-gesteuert" data-zh="ML 驱动">ML 驱动</div></div>
+          <span class="arch-arrow">→</span>
+          <div class="arch-node"><div class="an-title" data-en="Modular Power" data-de="Modulare Stromv." data-zh="模块化电力">模块化电力</div><div class="an-desc" data-en="Per-Hall Scaling" data-de="Pro-Halle" data-zh="按厅扩展">按厅扩展</div></div>
+        </div>
+      </div>
+      <p style="font-size:0.82rem;color:var(--gray-300);" data-en="Urban infill in Frankfurt metro. Liquid-cooling-integrated PDU with AI-driven cooling optimization cuts cooling energy 8–15%. Waste heat → municipal heating (Schwalbach, Süwag €22M)."
+         data-de="Städtische Nachverdichtung Frankfurt. Flüssigkeitsgekühlte PDU + KI-gesteuerte Kühloptimierung. Abwärme → Fernwärme (Schwalbach)."
+         data-zh="法兰克福都市区增建。液冷集成配电 + AI 驱动冷却优化将冷却能耗降低 8–15%。废热接入市政供暖（Schwalbach 协议，Süwag €2200 万）。">法兰克福都市区增建。液冷集成配电 + AI 驱动冷却优化将冷却能耗降低 8–15%。废热接入市政供暖（Schwalbach 协议，Süwag €2200 万）。</p>
+    </div>
+    <div class="card reveal reveal-delay-2" style="border-left: 2px solid var(--cyan);">
+      <h4 data-en="Scenario C: Legacy Retrofit" data-de="Szenario C: Legacy-Retrofit" data-zh="场景 C：存量改造">场景 C：存量改造</h4>
+      <p style="color:var(--gray-400);font-size:0.72rem;margin-bottom:14px;" data-en="Target: AMS01 (5MW), FRA01 (6MW)" data-de="Ziel: AMS01 (5MW), FRA01 (6MW)" data-zh="目标：AMS01（5MW）、FRA01（6MW）">目标：AMS01（5MW）、FRA01（6MW）</p>
+      <div class="arch-flow" style="flex-direction:column;align-items:flex-start;gap:8px;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div class="arch-node"><div class="an-title" data-en="Existing UPS" data-de="Bestands-USV" data-zh="现有 UPS">现有 UPS</div><div class="an-desc" data-en="Retain" data-de="Behalten" data-zh="保留">保留</div></div>
+          <span class="arch-arrow">+</span>
+          <div class="arch-node"><div class="an-title" data-en="Cooling Retrofit" data-de="Kühl-Retrofit" data-zh="冷却改造">冷却改造</div><div class="an-desc" data-en="Add D2C Loops" data-de="D2C-Kreisläufe" data-zh="增设 D2C">增设 D2C</div></div>
+          <span class="arch-arrow">+</span>
+          <div class="arch-node"><div class="an-title" data-en="Behind-Meter BESS" data-de="Behind-Meter BESS" data-zh="表后 BESS">表后 BESS</div><div class="an-desc" data-en="Peak Shaving" data-de="Spitzenkappung" data-zh="削峰">削峰</div></div>
+          <span class="arch-arrow">→</span>
+          <div class="arch-node"><div class="an-title" data-en="PUE 1.3–1.4" data-de="PUE 1,3–1,4" data-zh="PUE 1.3–1.4">PUE 1.3–1.4</div><div class="an-desc" data-en="From 1.6" data-de="Von 1,6" data-zh="自 1.6">自 1.6</div></div>
+        </div>
+      </div>
+      <p style="font-size:0.82rem;color:var(--gray-300);" data-en="Incremental retrofit: retain UPS, add liquid cooling to high-density rows, behind-meter BESS. AMS01 PUE 1.6→1.3-1.4 without structural rebuild."
+         data-de="Schrittweise Nachrüstung mit Flüssigkühlung und Behind-Meter-BESS. AMS01 PUE 1,6→1,3-1,4."
+         data-zh="渐进式改造：保留 UPS，增设液冷回路，表后 BESS 削峰。AMS01 PUE 从 1.6 降至 1.3–1.4，无需结构性重建。">渐进式改造：保留 UPS，增设液冷回路，表后 BESS 削峰。AMS01 PUE 从 1.6 降至 1.3–1.4，无需结构性重建。</p>
+    </div>
+  </div>
+  <div class="sec-label reveal" data-en="SOURCE-GRID-LOAD-STORAGE MAPPING" data-de="SOURCE-GRID-LOAD-STORAGE-ZUORDNUNG" data-zh="源网荷储映射矩阵">源网荷储映射矩阵</div>
+  <div class="table-wrap reveal">
+    <table>
+      <thead><tr><th data-en="Dimension" data-de="Dimension" data-zh="维度">维度</th><th data-en="BER02 (Scenario A)" data-de="BER02 (Szenario A)" data-zh="BER02（场景 A）">BER02（场景 A）</th><th data-en="FRA03/04 (Scenario B)" data-de="FRA03/04 (Szenario B)" data-zh="FRA03/04（场景 B）">FRA03/04（场景 B）</th><th data-en="AMS01/FRA01 (Scenario C)" data-de="AMS01/FRA01 (Szenario C)" data-zh="AMS01/FRA01（场景 C）">AMS01/FRA01（场景 C）</th></tr></thead>
+      <tbody>
+        <tr><td data-en="Source (源)" data-de="Source (源)" data-zh="源">源</td><td data-en="On-site PV + Wind PPA + Grid" data-de="PV + Wind-PPA + Netz" data-zh="光伏 + 风电 PPA + 电网">光伏 + 风电 PPA + 电网</td><td data-en="Grid + Rooftop PV + Waste Heat" data-de="Netz + Dach-PV + Abwärme" data-zh="电网 + 屋顶光伏 + 废热">电网 + 屋顶光伏 + 废热</td><td data-en="Grid + BESS only" data-de="Nur Netz + BESS" data-zh="仅电网 + BESS">仅电网 + BESS</td></tr>
+        <tr><td data-en="Grid (网)" data-de="Grid (网)" data-zh="网">网</td><td data-en="110kV Smart Substation" data-de="110kV Smart-USW" data-zh="110kV 智能变电站">110kV 智能变电站</td><td data-en="Modular MV/LV Distribution" data-de="Modulare MS/NS-Verteilung" data-zh="模块化中低压配电">模块化中低压配电</td><td data-en="Existing MV Connection" data-de="Bestehender MS-Anschluss" data-zh="现有中压连接">现有中压连接</td></tr>
+        <tr><td data-en="Load (荷)" data-de="Load (荷)" data-zh="荷">荷</td><td data-en="AI Training/Inference" data-de="KI-Training/Inferenz" data-zh="AI 训练/推理集群">AI 训练/推理集群</td><td data-en="Mixed AI + Colocation" data-de="Gemischt KI + Colo" data-zh="混合 AI + 托管">混合 AI + 托管</td><td data-en="Colocation + Light AI" data-de="Colo + Light KI" data-zh="托管 + 轻量 AI">托管 + 轻量 AI</td></tr>
+        <tr><td data-en="Storage (储)" data-de="Storage (储)" data-zh="储">储</td><td data-en="Large-scale Battery Storage" data-de="Groß-Batteriespeicher" data-zh="大规模电池储能">大规模电池储能</td><td data-en="Mid-scale BESS + UPS" data-de="Mittleres BESS + USV" data-zh="中规模 BESS + UPS">中规模 BESS + UPS</td><td data-en="Behind-Meter BESS" data-de="Behind-Meter BESS" data-zh="表后 BESS">表后 BESS</td></tr>
+        <tr><td data-en="Key Value" data-de="Schlüsselwert" data-zh="核心价值">核心价值</td><td data-en="Energy arbitrage + RE firming" data-de="Arbitrage + EE-Verstetigung" data-zh="能源套利 + 可再生能源稳定">能源套利 + 可再生能源稳定</td><td data-en="PUE &lt;1.2 + waste heat revenue" data-de="PUE &lt;1,2 + Abwärme-Erlöse" data-zh="PUE&lt;1.2 + 废热收入">PUE&lt;1.2 + 废热收入</td><td data-en="Peak shaving + PUE improvement" data-de="Spitzenkappung + PUE-Verbesserung" data-zh="削峰 + PUE 改善">削峰 + PUE 改善</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ====== MODULE 6 ====== -->
+<section class="section" id="mod6">
+  <div class="sec-num" data-en="MODULE 06" data-de="MODUL 06" data-zh="模块 06">模块 06</div>
+  <h2 class="sec-title" data-en="Energy Solution Requirements Deep Dive" data-de="Energielösungs-Anforderungen Deep Dive" data-zh="能源解决方案需求深度洞察">能源解决方案需求深度洞察</h2>
+  <p class="sec-subtitle" data-en="Analyzing the underlying logic of energy needs — from explicit cost/reliability demands to implicit requirements around carbon traceability and elastic scaling."
+     data-de="Analyse der Logik des Energiebedarfs — von expliziten Kosten-/Zuverlässigkeitsanforderungen bis zu impliziten Anforderungen."
+     data-zh="分析能源需求的底层逻辑——从显性成本/可靠性需求到隐性碳追溯和弹性扩展的全方位需求。">分析能源需求的底层逻辑——从显性成本/可靠性需求到隐性碳追溯和弹性扩展的全方位需求。</p>
+  <div class="divider"></div>
+  <div class="two-col">
+    <div class="reveal">
+      <div class="sec-label" data-en="EXPLICIT DEMAND LOGIC" data-de="EXPLIZITE BEDARFSLOGIK" data-zh="显性需求逻辑">显性需求逻辑</div>
+      <table>
+        <thead><tr><th data-en="Pain" data-de="Problem" data-zh="痛点">痛点</th><th data-en="Pathway" data-de="Lösungsweg" data-zh="路径">路径</th><th data-en="Huawei Solution" data-de="Huawei-Lösung" data-zh="华为方案">华为方案</th></tr></thead>
+        <tbody>
+          <tr><td data-en="High Energy Cost" data-de="Hohe Energiekosten" data-zh="高能源成本">高能源成本</td><td data-en="Peak-valley arbitrage + RE self-consumption" data-de="Spitzen-Tal-Arbitrage + EE-Eigenverbrauch" data-zh="峰谷套利 + 可再生能源自用">峰谷套利 + 可再生能源自用</td><td data-en="Grid-scale BESS + Intelligent EMS" data-de="Netzgekoppeltes BESS + Intelligentes EMS" data-zh="电网级储能 + 智能能源管理系统">电网级储能 + 智能能源管理系统</td></tr>
+          <tr><td data-en="Supply Reliability" data-de="Versorgungssicherheit" data-zh="供电可靠性">供电可靠性</td><td data-en="Multi-source redundant architecture" data-de="Multi-Quellen-Redundanz" data-zh="多源冗余架构">多源冗余架构</td><td data-en="Smart Substation + Microgrid Controller" data-de="Smart-USW + Microgrid-Controller" data-zh="智能变电站 + 微网控制器">智能变电站 + 微网控制器</td></tr>
+          <tr><td data-en="Cooling Efficiency" data-de="Kühleffizienz" data-zh="冷却效率">冷却效率</td><td data-en="Liquid cooling + AI optimization" data-de="Flüssigkühlung + KI-Optimierung" data-zh="液冷 + AI 优化">液冷 + AI 优化</td><td data-en="AI Cooling Optimization + Integrated Liquid Cooling PDU" data-de="KI-Kühloptimierung + Integrierte Flüssigkühl-PDU" data-zh="AI 冷却优化 + 集成液冷配电">AI 冷却优化 + 集成液冷配电</td></tr>
+          <tr><td data-en="Carbon Compliance" data-de="CO2-Compliance" data-zh="碳合规">碳合规</td><td data-en="Full energy chain carbon tracking" data-de="Kohlenstoff-Tracking" data-zh="全能源链碳追踪">全能源链碳追踪</td><td data-en="Carbon Management &amp; Tracking Platform" data-de="CO2-Management-Plattform" data-zh="碳管理与追踪平台">碳管理与追踪平台</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="reveal reveal-delay-1">
+      <div class="sec-label" data-en="IMPLICIT / LATENT DEMANDS" data-de="IMPLIZITE / LATENTE ANFORDERUNGEN" data-zh="隐性/潜在需求">隐性/潜在需求</div>
+      <div class="priority-grid">
+        <div class="priority-item">
+          <div class="pi-badge critical" data-en="UNSPOKEN" data-de="UNBEAUSSPROCHEN" data-zh="未明言">未明言</div>
+          <p style="color:var(--white);font-weight:700;font-size:0.84rem;" data-en="Elastic Power Scaling for GPU Clusters" data-de="Elastische Leistungsskalierung für GPU-Cluster" data-zh="GPU 集群弹性电力扩展">GPU 集群弹性电力扩展</p>
+          <p style="font-size:0.78rem;color:var(--gray-400);" data-en="Each GPU generation (H100→B200→...) can double power density. Distribution must support in-place upgrades from 40kW to 100kW+ per rack without structural rework."
+             data-de="Jede GPU-Generation kann die Leistungsdichte verdoppeln. Verteilung muss In-Place-Upgrades unterstützen."
+             data-zh="每一代 GPU（H100→B200→...）可在相同占地面积内使功率密度翻倍。配电系统必须支持从 40kW 到 100kW+ 每机柜的就地升级。">每一代 GPU（H100→B200→...）可在相同占地面积内使功率密度翻倍。配电系统必须支持从 40kW 到 100kW+ 每机柜的就地升级。</p>
+        </div>
+        <div class="priority-item">
+          <div class="pi-badge high" data-en="UNSPOKEN" data-de="UNBEAUSSPROCHEN" data-zh="未明言">未明言</div>
+          <p style="color:var(--white);font-weight:700;font-size:0.84rem;" data-en="Carbon Footprint Auditability (CSRD Scope 3)" data-de="CO2-Fußabdruck-Prüfbarkeit (CSRD Scope 3)" data-zh="碳足迹可审计性（CSRD Scope 3）">碳足迹可审计性（CSRD Scope 3）</p>
+          <p style="font-size:0.78rem;color:var(--gray-400);" data-en="CSRD requires granular, verifiable carbon data. Energy systems must export timestamped, location-specific carbon intensity data per tenant for ESG and SLL KPI verification."
+             data-de="CSRD erfordert granulare, prüfbare Kohlenstoffdaten. Systeme müssen CO2-Daten pro Mieter exportieren."
+             data-zh="CSRD 要求可验证的细粒度碳数据。能源系统需按租户导出带时间戳和位置标签的碳强度数据，用于 ESG 报告和 SLL KPI 验证。">CSRD 要求可验证的细粒度碳数据。能源系统需按租户导出带时间戳和位置标签的碳强度数据，用于 ESG 报告和 SLL KPI 验证。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="sec-label reveal" data-en="DECISION-MAKING FACTORS" data-de="ENTSCHEIDUNGSFAKTOREN" data-zh="决策关键因素">决策关键因素</div>
+  <div class="card-grid">
+    <div class="card reveal">
+      <h4 data-en="ROI Tolerance" data-de="ROI-Toleranz" data-zh="ROI 容忍度">ROI 容忍度</h4>
+      <div class="metric" data-en="3–7 Years" data-de="3–7 Jahre" data-zh="3–7 年">3–7 年</div>
+      <p data-en="DTCP accept medium-term payback given 25+ year asset life. BESS/solar with 5–7yr ROI within range, especially paired with SLL rate incentives."
+         data-de="DTCP akzeptiert mittelfristige Amortisation bei 25+ Jahren Nutzungsdauer."
+         data-zh="DTCP 可接受中期回报周期（资产寿命 25+ 年）。5–7 年 ROI 的 BESS/光伏投资在容忍范围内，配合 SLL 利率激励更佳。">DTCP 可接受中期回报周期（资产寿命 25+ 年）。5–7 年 ROI 的 BESS/光伏投资在容忍范围内，配合 SLL 利率激励更佳。</p>
+    </div>
+    <div class="card reveal reveal-delay-1">
+      <h4 data-en="Technology Maturity" data-de="Technologiereife" data-zh="技术成熟度">技术成熟度</h4>
+      <div class="metric" data-en="Proven + Pilot" data-de="Bewährt + Pilot" data-zh="成熟 + 试点">成熟 + 试点</div>
+      <p data-en="Government sites: only proven tech (EN 50600 VK3). AI sites (FRA03, BER02): willing to pilot advanced solutions with reference deployments."
+         data-de="Regierungsstandorte: nur bewährte Technik. KI-Standorte: bereit für Pilotprojekte."
+         data-zh="政府站点：仅成熟技术（EN 50600 VK3）。AI 站点（FRA03、BER02）：愿意在有参考部署背书的情况下试点先进方案。">政府站点：仅成熟技术（EN 50600 VK3）。AI 站点（FRA03、BER02）：愿意在有参考部署背书的情况下试点先进方案。</p>
+    </div>
+    <div class="card reveal reveal-delay-2">
+      <h4 data-en="Supplier Responsiveness" data-de="Lieferanten-Reaktionsfähigkeit" data-zh="供应商响应能力">供应商响应能力</h4>
+      <div class="metric" data-en="4-Hour SLA" data-de="4-Stunden-SLA" data-zh="4 小时 SLA">4 小时 SLA</div>
+      <p data-en="100% uptime SLA demands sub-day response. Huawei's EU service network (Frankfurt, Munich, Amsterdam) + local spare parts depots are critical decision factors."
+         data-de="100% Uptime-SLA erfordert Reaktion binnen Stunden. Huaweis EU-Servicenetz ist kritischer Faktor."
+         data-zh="100% 正常运行 SLA 要求数小时内响应。华为欧洲服务网络（法兰克福、慕尼黑、阿姆斯特丹）+ 本地备件库是关键决策因素。">100% 正常运行 SLA 要求数小时内响应。华为欧洲服务网络（法兰克福、慕尼黑、阿姆斯特丹）+ 本地备件库是关键决策因素。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ====== MODULE 7 ====== -->
+<section class="section" id="mod7">
+  <div class="sec-num" data-en="MODULE 07" data-de="MODUL 07" data-zh="模块 07">模块 07</div>
+  <h2 class="sec-title" data-en="Development Opportunities &amp; Challenges" data-de="Entwicklungschancen &amp; Herausforderungen" data-zh="发展机遇与挑战预判">发展机遇与挑战预判</h2>
+  <p class="sec-subtitle" data-en="Synthesizing energy upgrade opportunities against implementation challenges, with prioritized impact assessment and phased resolution roadmap."
+     data-de="Synthese von Energie-Upgrade-Chancen gegen Herausforderungen, mit priorisierter Wirkungsbewertung."
+     data-zh="综合能源升级机遇与实施挑战，提供优先级影响评估和分阶段实施路线图。">综合能源升级机遇与实施挑战，提供优先级影响评估和分阶段实施路线图。</p>
+  <div class="divider"></div>
+  <div class="two-col">
+    <div class="reveal">
+      <div class="sec-label" data-en="CORE OPPORTUNITIES" data-de="KERNCHANCEN" data-zh="核心机遇">核心机遇</div>
+      <div class="highlight-box">
+        <h4 data-en="1. Carbon Credit Revenue" data-de="1. CO2-Zertifikats-Erlöse" data-zh="1. 碳信用收入">1. 碳信用收入</h4>
+        <p data-en="EU Taxonomy-aligned sites with granular carbon tracking can generate verified credits. At 400MW with 100% RE, ~1.5M tCO2e annual avoided emissions could yield significant revenue under EU ETS Phase IV (~€80/t)."
+           data-de="EU-Taxonomie-konforme Standorte können verifizierte CO2-Zertifikate generieren. Bei 400MW mit 100% EE: ~1,5 Mio. tCO2e/Jahr."
+           data-zh="EU 分类法认证站点配合细粒度碳追踪可产生经核证的碳信用。400MW + 100% 可再生能源，年减排约 150 万吨 CO2e，在 EU ETS 第四阶段（碳价 ~€80/吨）下可产生显著收入。">EU 分类法认证站点配合细粒度碳追踪可产生经核证的碳信用。400MW + 100% 可再生能源，年减排约 150 万吨 CO2e，在 EU ETS 第四阶段（碳价 ~€80/吨）下可产生显著收入。</p>
+      </div>
+      <div class="highlight-box">
+        <h4 data-en="2. Waste Heat as Revenue Stream" data-de="2. Abwärme als Erlösquelle" data-zh="2. 废热商品化收入">2. 废热商品化收入</h4>
+        <p data-en="Schwalbach model (FRA03+Süwag+municipality) is replicable. At 400MW, waste heat could supply 50,000+ households, generating €15–25M/yr while meeting EnEfG mandates."
+           data-de="Schwalbach-Modell ist replizierbar. Bei 400MW: Abwärme für 50.000+ Haushalte, 15–25 Mio. €/Jahr."
+           data-zh="Schwalbach 模式（FRA03+Süwag+市政）可复制推广。400MW 规模下，废热可供应 5 万+户家庭，产生 €1500–2500 万/年热力销售收入。">Schwalbach 模式（FRA03+Süwag+市政）可复制推广。400MW 规模下，废热可供应 5 万+户家庭，产生 €1500–2500 万/年热力销售收入。</p>
+      </div>
+      <div class="highlight-box">
+        <h4 data-en="3. Green Bond &amp; SLL Rate Optimization" data-de="3. Green Bond &amp; SLL-Zinsoptimierung" data-zh="3. 绿色债券与 SLL 利率优化">3. 绿色债券与 SLL 利率优化</h4>
+        <p data-en="Full EU Taxonomy across all 8 sites unlocks lower-cost green bond issuance. €2.475B debt at 150–200bps SLL margin reduction = €37–50M annual interest savings."
+           data-de="Volle EU-Taxonomie über 8 Standorte ermöglicht günstigere Green Bonds. 2,475 Mrd. € × 150–200 Bp. = 37–50 Mio. €/Jahr Zinsersparnis."
+           data-zh="8 站点全 EU 分类法认证解锁低成本绿色债券发行。€24.75 亿债务按 150–200bps SLL 利差缩减 = €3700–5000 万/年利息节省。">8 站点全 EU 分类法认证解锁低成本绿色债券发行。€24.75 亿债务按 150–200bps SLL 利差缩减 = €3700–5000 万/年利息节省。</p>
+      </div>
+    </div>
+    <div class="reveal reveal-delay-1">
+      <div class="sec-label" data-en="KEY CHALLENGES &amp; MITIGATION" data-de="HERAUSFORDERUNGEN &amp; GEGENMASSNAHMEN" data-zh="关键挑战与应对">关键挑战与应对</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th data-en="Prio" data-de="Prio" data-zh="优先级">Prio</th><th data-en="Challenge" data-de="Herausforderung" data-zh="挑战">挑战</th><th data-en="Impact" data-de="Auswirkung" data-zh="影响">影响</th><th data-en="Mitigation" data-de="Gegenmaßnahme" data-zh="应对措施">应对措施</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><div class="pi-badge critical">P0</div></td>
+              <td data-en="Grid bottleneck for FRA04/FRA05" data-de="Netzengpass für FRA04/FRA05" data-zh="FRA04/FRA05 电网瓶颈">FRA04/FRA05 电网瓶颈</td>
+              <td data-en="Project delay, tenant loss" data-de="Projektverzögerung, Mieterverlust" data-zh="项目延迟、客户流失">项目延迟、客户流失</td>
+              <td data-en="Early grid reservation + on-site generation" data-de="Frühe Netzreservierung + Eigenerzeugung" data-zh="提前电网预留 + 现场发电降需">提前电网预留 + 现场发电降需</td>
+            </tr>
+            <tr>
+              <td><div class="pi-badge high">P1</div></td>
+              <td data-en="Retrofit compatibility (AMS01, FRA01)" data-de="Nachrüstungs-Kompatibilität" data-zh="存量改造兼容性（AMS01、FRA01）">存量改造兼容性（AMS01、FRA01）</td>
+              <td data-en="Cannot serve AI tenants" data-de="Können KI-Mieter nicht bedienen" data-zh="无法服务 AI 租户">无法服务 AI 租户</td>
+              <td data-en="Phased liquid cooling overlay; 20–30kW zones" data-de="Phasenweise Flüssigkühlung; 20–30kW-Zonen" data-zh="分阶段液冷叠加；20–30kW/机柜区域">分阶段液冷叠加；20–30kW/机柜区域</td>
+            </tr>
+            <tr>
+              <td><div class="pi-badge high">P1</div></td>
+              <td data-en="Green power intermittency at BER02" data-de="Grünstrom-Volatilität bei BER02" data-zh="BER02 绿电间歇性">BER02 绿电间歇性</td>
+              <td data-en="RE curtailment erodes ESG credentials" data-de="EE-Abregelung untergräbt ESG" data-zh="弃电损害 ESG 资质">弃电损害 ESG 资质</td>
+              <td data-en="BESS + hydrogen-ready microgrid" data-de="BESS + H2-fähiges Microgrid" data-zh="BESS + 氢能就绪微网">BESS + 氢能就绪微网</td>
+            </tr>
+            <tr>
+              <td><div class="pi-badge medium">P2</div></td>
+              <td data-en="HV equipment supply chain lead times" data-de="Lieferketten-Vorlaufzeiten" data-zh="高压设备供应链交期">高压设备供应链交期</td>
+              <td data-en="12–18 month transformer delivery" data-de="12–18 Monate Transformator-Lieferung" data-zh="12–18 月变压器交期">12–18 月变压器交期</td>
+              <td data-en="Multi-vendor procurement; pre-order long-lead items" data-de="Multi-Vendor; Vorbestellung" data-zh="多供应商采购；长交期物项提前下单">多供应商采购；长交期物项提前下单</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="sec-label reveal" data-en="PHASED IMPLEMENTATION ROADMAP" data-de="PHASENWEISE UMSETZUNGS-ROADMAP" data-zh="分阶段实施路线图">分阶段实施路线图</div>
+  <div class="arch-flow reveal" style="justify-content:space-between;">
+    <div class="arch-node" style="flex:1;">
+      <div class="an-title" data-en="Phase 1 (2026–2027)" data-de="Phase 1 (2026–2027)" data-zh="阶段一（2026–2027）">阶段一（2026–2027）</div>
+      <div class="an-desc" data-en="FRA03 Launch + AMS01 BESS pilot + BER02 substation + AI Cooling Opt." data-de="FRA03-Start + AMS01 BESS-Pilot + BER02-USW + KI-Kühlung" data-zh="FRA03 投产 + AMS01 BESS 试点 + BER02 变电站 + AI 冷却优化">FRA03 投产 + AMS01 BESS 试点 + BER02 变电站 + AI 冷却优化</div>
+    </div>
+    <span class="arch-arrow">→</span>
+    <div class="arch-node" style="flex:1;">
+      <div class="an-title" data-en="Phase 2 (2027–2029)" data-de="Phase 2 (2027–2029)" data-zh="阶段二（2027–2029）">阶段二（2027–2029）</div>
+      <div class="an-desc" data-en="BER02 Phase 1 + FRA04 start + Full BESS arbitrage + Carbon platform" data-de="BER02 Phase 1 + FRA04-Start + Volle BESS-Arbitrage" data-zh="BER02 一期 + FRA04 开工 + 全量 BESS 套利 + 碳平台">BER02 一期 + FRA04 开工 + 全量 BESS 套利 + 碳平台</div>
+    </div>
+    <span class="arch-arrow">→</span>
+    <div class="arch-node" style="flex:1;">
+      <div class="an-title" data-en="Phase 3 (2029+)" data-de="Phase 3 (2029+)" data-zh="阶段三（2029+）">阶段三（2029+）</div>
+      <div class="an-desc" data-en="FRA04 + BER02 full + FRA05 + EU Taxonomy + H2 microgrid" data-de="FRA04 + BER02 voll + FRA05 + EU-Taxonomie" data-zh="FRA04 + BER02 全容量 + FRA05 + 全平台 EU 分类法 + 氢能微网">FRA04 + BER02 全容量 + FRA05 + 全平台 EU 分类法 + 氢能微网</div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== MODULE 8: Policy & Regulatory Environment ====== -->
+<section class="section" id="mod8">
+  <div class="sec-num" data-en="MODULE 08" data-de="MODUL 08" data-zh="模块 08">模块 08</div>
+  <h2 class="sec-title" data-en="Policy &amp; Regulatory Environment Insight" data-de="Politik- &amp; Regulierungsumfeld-Insight" data-zh="政策与监管环境洞察">政策与监管环境洞察</h2>
+  <p class="sec-subtitle" data-en="Germany-specific analysis: electricity price structure, EnEfG compliance per site, Frankfurt grid crisis, carbon-financing policy synergies, and actionable policy windows for Maincubes."
+     data-de="Deutschland-spezifische Analyse: Strompreisstruktur, EnEfG-Compliance pro Standort, Frankfurter Netzkrise, CO2-Finanzierungssynergien und umsetzbare Politikfenster für Maincubes."
+     data-zh="德国市场专项分析：电价结构拆解、EnEfG 合规逐站点对标、法兰克福电网危机、碳-金融政策联动、以及面向 Maincubes 的可执行政策窗口期建议。">德国市场专项分析：电价结构拆解、EnEfG 合规逐站点对标、法兰克福电网危机、碳-金融政策联动、以及面向 Maincubes 的可执行政策窗口期建议。</p>
+  <div class="divider"></div>
+
+  <!-- 8.1 Electricity Price Breakdown -->
+  <div class="sec-label reveal" data-en="GERMAN INDUSTRIAL ELECTRICITY PRICE BREAKDOWN (2026)" data-de="DEUTSCHER INDUSTRIESTROMPREIS — ZUSAMMENSETZUNG (2026)" data-zh="德国工业电价组成拆解（2026）">德国工业电价组成拆解（2026）</div>
+  <div class="table-wrap reveal">
+    <table>
+      <thead><tr><th data-en="Component" data-de="Komponente" data-zh="组成项目">组成项目</th><th data-en="2025 (ct/kWh)" data-de="2025 (ct/kWh)" data-zh="2025 (ct/kWh)">2025 (ct/kWh)</th><th data-en="2026 (ct/kWh)" data-de="2026 (ct/kWh)" data-zh="2026 (ct/kWh)">2026 (ct/kWh)</th><th data-en="Δ" data-de="Δ" data-zh="变化">变化</th><th data-en="Relief Available" data-de="Entlastung" data-zh="减免机制">减免机制</th></tr></thead>
+      <tbody>
+        <tr><td data-en="Wholesale Price (Markt)" data-de="Börsenstrompreis" data-zh="批发电价">批发电价</td><td class="mono">~8-10</td><td class="mono">~8-12</td><td class="mono" style="color:var(--amber);">↑</td><td data-en="PPA contracts, self-generation" data-de="PPA, Eigenerzeugung" data-zh="PPA 合约、自发自用">PPA 合约、自发自用</td></tr>
+        <tr><td data-en="Grid Fees (Netzentgelte)" data-de="Netzentgelte" data-zh="电网使用费">电网使用费</td><td class="mono">~5-7</td><td class="mono">~6-8</td><td class="mono" style="color:var(--amber);">↑</td><td data-en="§19 StromNEV (≥10GWh, ≥7000h)" data-de="§19 StromNEV (≥10GWh, ≥7000h)" data-zh="§19 StromNEV（≥10GWh, ≥7000h）">§19 StromNEV（≥10GWh, ≥7000h）</td></tr>
+        <tr><td data-en="Electricity Tax (Stromsteuer)" data-de="Stromsteuer" data-zh="电力税">电力税</td><td class="mono">2.050</td><td class="mono">2.050</td><td class="mono" style="color:var(--cyan);">→</td><td data-en="§9b StromStG (manufacturing only)" data-de="§9b StromStG" data-zh="§9b 电力税法（仅制造业）">§9b 电力税法（仅制造业）</td></tr>
+        <tr><td data-en="EEG Levy (EEG-Umlage)" data-de="EEG-Umlage" data-zh="EEG 附加费">EEG 附加费</td><td class="mono">0</td><td class="mono">0</td><td class="mono" style="color:var(--cyan);">→</td><td data-en="Abolished since 2023 (federal budget)" data-de="2023 abgeschafft (Bundeshaushalt)" data-zh="2023 起取消（联邦预算承担）">2023 起取消（联邦预算承担）</td></tr>
+        <tr><td data-en="CHP Levy (KWK-Umlage)" data-de="KWK-Umlage" data-zh="KWK 附加费">KWK 附加费</td><td class="mono">0.277</td><td class="mono" style="color:var(--red);">0.446</td><td class="mono" style="color:var(--red);">+61%</td><td data-en="BesAR → 15% rate (deadline: 30.06.2026)" data-de="BesAR → 15% (Frist: 30.06.2026)" data-zh="BesAR→降至15%（截止：2026.06.30）">BesAR→降至15%（截止：2026.06.30）</td></tr>
+        <tr><td data-en="Offshore Grid Levy" data-de="Offshore-Netzumlage" data-zh="海上风电附加费">海上风电附加费</td><td class="mono">0.816</td><td class="mono" style="color:var(--red);">0.941</td><td class="mono" style="color:var(--red);">+15.3%</td><td data-en="BesAR → 15% (SuperCap: 0.034 ct/kWh)" data-de="BesAR → 15% (SuperCap: 0,034 ct/kWh)" data-zh="BesAR→降至15%（SuperCap: 0.034 ct/kWh）">BesAR→降至15%（SuperCap: 0.034 ct/kWh）</td></tr>
+        <tr><td data-en="§19 StromNEV Levy" data-de="§19 StromNEV-Umlage" data-zh="§19 附加费">§19 附加费</td><td class="mono">1.558</td><td class="mono">1.559</td><td class="mono" style="color:var(--cyan);">→</td><td data-en=">1GWh bracket: 0.050 ct/kWh" data-de=">1GWh: 0,050 ct/kWh" data-zh=">1GWh 档：0.050 ct/kWh">>1GWh 档：0.050 ct/kWh</td></tr>
+        <tr><td data-en="Concession Fee (Konzessionsabgabe)" data-de="Konzessionsabgabe" data-zh="特许权费">特许权费</td><td class="mono">0.11</td><td class="mono">0.11</td><td class="mono" style="color:var(--cyan);">→</td><td data-en="Special contract (Sondervertrag)" data-de="Sondervertrag" data-zh="特殊合约（Sondervertrag）">特殊合约（Sondervertrag）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 8.2 Data Center Electricity Price Position -->
+  <div class="two-col">
+    <div class="reveal">
+      <div class="sec-label" data-en="DC PRICE POSITION: GERMANY vs EU" data-de="RZ-STROMPREIS: DEUTSCHLAND vs EU" data-zh="数据中心电价定位：德国 vs 欧盟">数据中心电价定位：德国 vs 欧盟</div>
+      <table>
+        <thead><tr><th data-en="Market" data-de="Markt" data-zh="市场">市场</th><th data-en="Industrial (ct/kWh)" data-de="Industrie (ct/kWh)" data-zh="工业电价 (ct/kWh)">工业电价 (ct/kWh)</th><th data-en="DC Effective* (ct/kWh)" data-de="RZ Effektiv* (ct/kWh)" data-zh="DC 实际* (ct/kWh)">DC 实际* (ct/kWh)</th></tr></thead>
+        <tbody>
+          <tr><td data-en="Germany (Frankfurt)" data-de="Deutschland (Frankfurt)" data-zh="德国（法兰克福）">德国（法兰克福）</td><td class="mono">~16-19</td><td class="mono" style="color:var(--amber);">~19</td></tr>
+          <tr><td data-en="Netherlands (Amsterdam)" data-de="Niederlande (Amsterdam)" data-zh="荷兰（阿姆斯特丹）">荷兰（阿姆斯特丹）</td><td class="mono">~14-17</td><td class="mono">~16</td></tr>
+          <tr><td data-en="France (Paris)" data-de="Frankreich (Paris)" data-zh="法国（巴黎）">法国（巴黎）</td><td class="mono">~10-13</td><td class="mono">~12</td></tr>
+          <tr><td data-en="Nordics (avg)" data-de="Nordic (Ø)" data-zh="北欧（均值）">北欧（均值）</td><td class="mono">~5-8</td><td class="mono">~7</td></tr>
+          <tr><td data-en="Ireland (Dublin)" data-de="Irland (Dublin)" data-zh="爱尔兰（都柏林）">爱尔兰（都柏林）</td><td class="mono">~13-16</td><td class="mono">~15</td></tr>
+          <tr><td data-en="Spain (Madrid)" data-de="Spanien (Madrid)" data-zh="西班牙（马德里）">西班牙（马德里）</td><td class="mono">~11-14</td><td class="mono">~13</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:0.65rem;color:var(--gray-500);margin-top:8px;font-weight:400;" data-en="* Effective rate includes grid fees, levies, and taxes at medium-voltage ≥7,000h/yr. Germany is 2.7× the Nordic benchmark."
+         data-de="* Effektivpreis inkl. Netzentgelte, Umlagen, Steuern bei Mittelspannung ≥7.000h/J. Deutschland: 2,7× des Nordic-Benchmarks."
+         data-zh="* 实际电价含电网费、附加费、税，以中压 ≥7,000h/年计。德国是北欧基准的 2.7 倍。">* 实际电价含电网费、附加费、税，以中压 ≥7,000h/年计。德国是北欧基准的 2.7 倍。</p>
+    </div>
+    <div class="reveal reveal-delay-1">
+      <div class="sec-label" data-en="POLICY CONTROVERSY: INDUSTRIAL PRICE EXCLUSION" data-de="POLITIK-KONTROVERSE: INDUSTRIESTROMPREIS-AUSSCHLUSS" data-zh="政策争议：工业电价补贴排除">政策争议：工业电价补贴排除</div>
+      <div class="highlight-box" style="border-left-color:var(--amber);">
+        <h4 style="color:var(--amber);" data-en="Nov 2025: Data Centers Excluded" data-de="Nov 2025: Rechenzentren ausgeschlossen" data-zh="2025.11：数据中心被排除">2025.11：数据中心被排除</h4>
+        <p data-en="The CDU/CSU+SPD coalition committee's industrial electricity price package explicitly excluded data center operators. eco Alliance called it a &ldquo;rejection of Germany as a data center location.&rdquo; Federal Minister Katherina Reiche had previously signalled inclusion — the reversal shocked the industry."
+           data-de="Das Industriestrompreis-Paket des CDU/CSU+SPD-Koalitionsausschusses schloss Rechenzentrumsbetreiber ausdrücklich aus. eco nannte es eine &bdquo;Absage an den Standort Deutschland&rdquo;."
+           data-zh="CDU/CSU+SPD 联合政府委员会的工业电价方案明确排除数据中心运营商。eco 联盟称这是「对德国数据中心区位的拒绝」。此前联邦经济部长 Katherina Reiche 曾发出纳入信号——这一逆转令行业震惊。">CDU/CSU+SPD 联合政府委员会的工业电价方案明确排除数据中心运营商。eco 联盟称这是「对德国数据中心区位的拒绝」。此前联邦经济部长 Katherina Reiche 曾发出纳入信号——这一逆转令行业震惊。</p>
+      </div>
+      <table>
+        <thead><tr><th data-en="Relief Instrument" data-de="Instrument" data-zh="减免工具">减免工具</th><th data-en="Status for DCs" data-de="Status für RZs" data-zh="数据中心状态">数据中心状态</th><th data-en="Action" data-de="Maßnahme" data-zh="行动">行动</th></tr></thead>
+        <tbody>
+          <tr><td data-en="Industrial Price Subsidy" data-de="Industriestrompreis" data-zh="工业电价补贴">工业电价补贴</td><td style="color:var(--red);" data-en="EXCLUDED" data-de="AUSGESCHLOSSEN" data-zh="排除">排除</td><td data-en="Advocacy via eco Alliance" data-de="Lobbyarbeit via eco" data-zh="通过 eco 联盟持续游说">通过 eco 联盟持续游说</td></tr>
+          <tr><td>BesAR</td><td style="color:var(--cyan);" data-en="AVAILABLE" data-de="VERFÜGBAR" data-zh="可用">可用</td><td data-en="Apply by 30.06.2026 for FY2027" data-de="Antrag bis 30.06.2026" data-zh="2026.06.30 前申请">2026.06.30 前申请</td></tr>
+          <tr><td data-en="§19 StromNEV Indiv. Relief" data-de="§19 StromNEV Indiv." data-zh="§19 个体电网费减免">§19 个体电网费减免</td><td style="color:var(--cyan);" data-en="AVAILABLE" data-de="VERFÜGBAR" data-zh="可用">可用</td><td data-en="FRA03/BER02 qualify (>10GWh)" data-de="FRA03/BER02 qualifiziert" data-zh="FRA03/BER02 符合条件（>10GWh）">FRA03/BER02 符合条件（>10GWh）</td></tr>
+          <tr><td data-en="Electricity Tax Reduction" data-de="Stromsteuer-Senkung" data-zh="电力税减免">电力税减免</td><td style="color:var(--red);" data-en="POSTPONED" data-de="VERSCHOBEN" data-zh="推迟">推迟</td><td data-en="Coalition commitment unfulfilled" data-de="Koalitionszusage nicht erfüllt" data-zh="联盟协议承诺未兑现">联盟协议承诺未兑现</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 8.3 EnEfG Compliance Per Site -->
+  <div class="sec-label reveal" data-en="EnEfG COMPLIANCE — PER SITE GAP ANALYSIS" data-de="EnEfG COMPLIANCE — STANDORTBEZOGENE LÜCKENANALYSE" data-zh="EnEfG 合规 — 逐站点差距分析">EnEfG 合规 — 逐站点差距分析</div>
+  <div class="table-wrap reveal">
+    <table>
+      <thead><tr>
+        <th data-en="Site" data-de="Standort" data-zh="站点">站点</th><th data-en="Current PUE" data-de="Aktueller PUE" data-zh="当前 PUE">当前 PUE</th>
+        <th data-en="2027.07 Req." data-de="2027.07 Anf." data-zh="2027.07 要求">2027.07 要求</th>
+        <th data-en="2030 Req." data-de="2030 Anf." data-zh="2030 要求">2030 要求</th>
+        <th data-en="Status" data-de="Status" data-zh="状态">状态</th>
+        <th data-en="ERF Obligation" data-de="ERF-Pflicht" data-zh="ERF 义务">ERF 义务</th>
+        <th data-en="RE (2027: 100%)" data-de="EE (2027: 100%)" data-zh="可再生 (2027:100%)">可再生 (2027:100%)</th>
+        <th data-en="EnMS Cert." data-de="EnMS-Zert." data-zh="EnMS 认证">EnMS 认证</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td class="mono">FRA01</td><td class="mono">≤1.3</td><td class="mono">≤1.5</td><td class="mono">≤1.3</td>
+          <td style="color:var(--cyan);" data-en="PASS" data-de="OK" data-zh="通过">通过</td>
+          <td style="color:var(--gray-500);" data-en="N/A (≤2.5GWh)" data-de="N/A (≤2,5GWh)" data-zh="不适用（≤2.5GWh）">不适用（≤2.5GWh）</td>
+          <td style="color:var(--cyan);">100%</td><td style="color:var(--cyan);" data-en="DONE" data-de="OK" data-zh="已认证">已认证</td>
+        </tr>
+        <tr>
+          <td class="mono">FRA02</td><td class="mono">≤1.3</td><td class="mono">≤1.5</td><td class="mono">≤1.3</td>
+          <td style="color:var(--cyan);" data-en="PASS" data-de="OK" data-zh="通过">通过</td>
+          <td style="color:var(--cyan);" data-en="ENABLED (District Heat)" data-de="AKTIV (Fernwärme)" data-zh="已启用（区域供暖）">已启用（区域供暖）</td>
+          <td style="color:var(--cyan);">100%</td><td style="color:var(--cyan);" data-en="DONE" data-de="OK" data-zh="已认证">已认证</td>
+        </tr>
+        <tr>
+          <td class="mono">BER01</td><td class="mono">≤1.26</td><td class="mono">≤1.5</td><td class="mono">≤1.3</td>
+          <td style="color:var(--cyan);" data-en="PASS" data-de="OK" data-zh="通过">通过</td>
+          <td style="color:var(--cyan);" data-en="ENABLED (GoWest Campus)" data-de="AKTIV (GoWest Campus)" data-zh="已启用（GoWest 园区）">已启用（GoWest 园区）</td>
+          <td style="color:var(--cyan);">100%</td><td style="color:var(--cyan);" data-en="DONE" data-de="OK" data-zh="已认证">已认证</td>
+        </tr>
+        <tr>
+          <td class="mono" style="color:var(--red);">AMS01</td><td class="mono" style="color:var(--red);">1.6</td><td class="mono">≤1.5</td><td class="mono">≤1.3</td>
+          <td style="color:var(--red);" data-en="NON-COMPLIANT (2027)" data-de="NICHT KONFORM (2027)" data-zh="不合规（2027）">不合规（2027）</td>
+          <td style="color:var(--red);" data-en="NOT ENABLED" data-de="NICHT AKTIV" data-zh="未启用">未启用</td>
+          <td style="color:var(--amber);">100%</td><td style="color:var(--amber);" data-en="IN PROGRESS" data-de="IN BEARBEITUNG" data-zh="推进中">推进中</td>
+        </tr>
+        <tr>
+          <td class="mono" style="color:var(--cyan);">FRA03</td><td class="mono">&lt;1.2</td><td class="mono" colspan="2" style="color:var(--cyan);" data-en="NEW BUILD (≥Jul 2026)" data-de="NEUBAU (≥Jul 2026)" data-zh="新建（≥2026.07）">新建（≥2026.07）</td>
+          <td style="color:var(--cyan);" data-en="PASS" data-de="OK" data-zh="通过">通过</td>
+          <td style="color:var(--cyan);" data-en="≥10% (Schwalbach)" data-de="≥10% (Schwalbach)" data-zh="≥10%（Schwalbach 协议）">≥10%（Schwalbach 协议）</td>
+          <td style="color:var(--cyan);">100%</td><td style="color:var(--cyan);" data-en="DONE" data-de="OK" data-zh="已认证">已认证</td>
+        </tr>
+        <tr>
+          <td class="mono" style="color:var(--cyan);">BER02</td><td class="mono">&lt;1.2</td><td class="mono" colspan="2" style="color:var(--cyan);" data-en="NEW BUILD (≥Jul 2028 → ERF ≥20%)" data-de="NEUBAU (≥Jul 2028 → ERF ≥20%)" data-zh="新建（≥2028.07 → ERF≥20%）">新建（≥2028.07 → ERF≥20%）</td>
+          <td style="color:var(--cyan);" data-en="PASS" data-de="OK" data-zh="通过">通过</td>
+          <td style="color:var(--amber);" data-en="MUST SECURE offtaker" data-de="ABNEHMER SICHERN" data-zh="需锁定热力承购方">需锁定热力承购方</td>
+          <td style="color:var(--cyan);">100%</td><td style="color:var(--cyan);" data-en="DONE" data-de="OK" data-zh="已认证">已认证</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 8.4 Grid Crisis -->
+  <div class="two-col">
+    <div class="reveal">
+      <div class="sec-label" data-en="FRANKFURT GRID: DE FACTO MORATORIUM" data-de="FRANKFURT NETZ: DE-FACTO-MORATORIUM" data-zh="法兰克福电网：事实性冻结">法兰克福电网：事实性冻结</div>
+      <table>
+        <thead><tr><th data-en="Indicator" data-de="Indikator" data-zh="指标">指标</th><th data-en="Value" data-de="Wert" data-zh="数值">数值</th></tr></thead>
+        <tbody>
+          <tr><td data-en="Active Data Centers" data-de="Aktive Rechenzentren" data-zh="活跃数据中心">活跃数据中心</td><td class="mono">126</td></tr>
+          <tr><td data-en="City Power Consumption (DC share)" data-de="Stadtstromverbrauch (RZ-Anteil)" data-zh="占全市电力消费">占全市电力消费</td><td class="mono" style="color:var(--amber);">~40%</td></tr>
+          <tr><td data-en="Total IT Load" data-de="IT-Last gesamt" data-zh="IT 总负载">IT 总负载</td><td class="mono">~1,020 MW</td></tr>
+          <tr><td data-en="Annual Growth Rate" data-de="Jährliches Wachstum" data-zh="年均增长率">年均增长率</td><td class="mono">18.6%</td></tr>
+          <tr><td data-en="Grid Connection Wait" data-de="Netzanschluss-Wartezeit" data-zh="电网接入等待">电网接入等待</td><td class="mono" style="color:var(--red);">>10 years</td></tr>
+          <tr><td data-en="NRM Annual Requests" data-de="NRM Jährliche Anfragen" data-zh="NRM 年度接入申请">NRM 年度接入申请</td><td class="mono">5-10 (50-100 MW each)</td></tr>
+          <tr><td data-en="Mainova Forecast" data-de="Mainova Prognose" data-zh="Mainova 预测">Mainova 预测</td><td data-en="New connections not before mid-2030s" data-de="Neue Anschlüsse frühestens Mitte 2030er" data-zh="最早 2030 年代中期才有新容量">最早 2030 年代中期才有新容量</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="reveal reveal-delay-1">
+      <div class="sec-label" data-en="IMPACT ON MAINCUBES PIPELINE" data-de="AUSWIRKUNG AUF MAINCUBES-PIPELINE" data-zh="对 Maincubes 管线的影响">对 Maincubes 管线的影响</div>
+      <div class="priority-grid">
+        <div class="priority-item">
+          <div class="pi-badge critical" data-en="CRITICAL" data-de="KRITISCH" data-zh="关键">关键</div>
+          <p style="color:var(--white);font-weight:700;font-size:0.84rem;" data-en="FRA04/FRA05: Frankfurt Grid Risk" data-de="FRA04/FRA05: Frankfurter Netzrisiko" data-zh="FRA04/FRA05：法兰克福电网风险">FRA04/FRA05：法兰克福电网风险</p>
+          <p style="font-size:0.78rem;color:var(--gray-400);" data-en="40MW (FRA04) + 75MW (FRA05) = 115MW in the Frankfurt metro — with >10yr grid wait. Grid agreements not yet public. Highest pipeline risk item."
+             data-de="115MW im Frankfurter Raum bei >10 Jahren Wartezeit. Netzvereinbarungen nicht öffentlich."
+             data-zh="法兰克福地区 40MW+75MW=115MW，电网等待 >10 年。协议尚未公开，管线最高风险项。">法兰克福地区 40MW+75MW=115MW，电网等待 >10 年。协议尚未公开，管线最高风险项。</p>
+        </div>
+        <div class="priority-item">
+          <div class="pi-badge high" data-en="HIGH" data-de="HOCH" data-zh="高">高</div>
+          <p style="color:var(--white);font-weight:700;font-size:0.84rem;" data-en="AMS01: Amsterdam Grid (Competing with NL Hyperscale)" data-de="AMS01: Amsterdamer Netz" data-zh="AMS01：阿姆斯特丹电网竞争">AMS01：阿姆斯特丹电网竞争</p>
+          <p style="font-size:0.78rem;color:var(--gray-400);" data-en="Netherlands is expanding but hyperscaler demand is intense. AMS01 at 5MW is small enough to be manageable, but expansion plans face headwinds."
+             data-de="Niederlande expandieren, aber Hyperscaler-Nachfrage intensiv. AMS01 mit 5MW ist handhabbar."
+             data-zh="荷兰在扩张但超大规模需求旺盛。AMS01 仅 5MW 体量可控，但扩展计划面临阻力。">荷兰在扩张但超大规模需求旺盛。AMS01 仅 5MW 体量可控，但扩展计划面临阻力。</p>
+        </div>
+        <div class="priority-item">
+          <div class="pi-badge high" data-en="SECURED" data-de="GESICHERT" data-zh="已锁定">已锁定</div>
+          <p style="color:var(--white);font-weight:700;font-size:0.84rem;" data-en="BER02: 200MW via E.DIS (First-Mover Advantage)" data-de="BER02: 200MW via E.DIS" data-zh="BER02：E.DIS 200MW（先发优势）">BER02：E.DIS 200MW（先发优势）</p>
+          <p style="font-size:0.78rem;color:var(--cyan);" data-en="The 200MW grid agreement with E.DIS and the 110kV substation application are already secured — a decisive competitive advantage in the Berlin region, where ~2.8 GW of capacity inquiries far exceed grid supply."
+             data-de="200MW-Netzvereinbarung mit E.DIS gesichert — entscheidender Wettbewerbsvorteil in Berlin (~2,8 GW Anfragen)."
+             data-zh="与 E.DIS 的 200MW 电网协议和 110kV 变电站申请已锁定——柏林地区约 2.8 GW 容量查询远超电网供给，这是决定性竞争优势。">与 E.DIS 的 200MW 电网协议和 110kV 变电站申请已锁定——柏林地区约 2.8 GW 容量查询远超电网供给，这是决定性竞争优势。</p>
+        </div>
+        <div class="priority-item">
+          <div class="pi-badge medium" data-en="WATCH" data-de="BEOBACHTEN" data-zh="关注">关注</div>
+          <p style="color:var(--white);font-weight:700;font-size:0.84rem;" data-en="KraftNAV Reform Defeat (Nov 2025)" data-de="KraftNAV-Reform gescheitert (Nov 2025)" data-zh="KraftNAV 改革被否（2025.11）">KraftNAV 改革被否（2025.11）</p>
+          <p style="font-size:0.78rem;color:var(--gray-400);" data-en="Bundesrat reform to ease DC grid connection bottlenecks was rejected by Economic Affairs Committee — no near-term legislative fix. Self-generation (gas plant, BESS) grows in strategic importance."
+             data-de="Bundesrat-Reform abgelehnt. Eigenerzeugung (Gaskraft, BESS) gewinnt an strategischer Bedeutung."
+             data-zh="联邦委员会旨在缓解 DC 电网瓶颈的改革被经济事务委员会否决——短期无法通过立法解决。自建电源（天然气电厂、BESS）的战略重要性上升。">联邦委员会旨在缓解 DC 电网瓶颈的改革被经济事务委员会否决——短期无法通过立法解决。自建电源（天然气电厂、BESS）的战略重要性上升。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8.5 Carbon-Finance Synergy -->
+  <div class="sec-label reveal" data-en="CARBON POLICY &amp; GREEN FINANCE SYNERGY" data-de="CO2-POLITIK &amp; GREEN-FINANCE-SYNERGIE" data-zh="碳政策与绿色金融联动">碳政策与绿色金融联动</div>
+  <div class="card-grid">
+    <div class="card reveal">
+      <h4 data-en="EU ETS Phase IV (2021–2030)" data-de="EU-ETS Phase IV (2021–2030)" data-zh="EU ETS 第四阶段（2021–2030）">EU ETS 第四阶段（2021–2030）</h4>
+      <div class="metric">~€80/t</div>
+      <p data-en="Carbon price trending upward. At 400MW with 100% RE, Maincubes avoids ~1.5M tCO2e/yr. Carbon credit revenue potential: €120M/yr under full taxonomy across all 8 sites."
+         data-de="CO2-Preis steigt. Bei 400MW mit 100% EE: ~1,5 Mio. tCO2e/Jahr vermieden."
+         data-zh="碳价上升趋势。400MW+100% 可再生能源，年减排约 150 万吨 CO2e。8 站点全认证后碳信用收入潜力：~€1.2 亿/年。">碳价上升趋势。400MW+100% 可再生能源，年减排约 150 万吨 CO2e。8 站点全认证后碳信用收入潜力：~€1.2 亿/年。</p>
+    </div>
+    <div class="card reveal reveal-delay-1">
+      <h4 data-en="CSRD Scope 1–3 Reporting" data-de="CSRD Scope 1–3 Berichterstattung" data-zh="CSRD Scope 1–3 报告">CSRD Scope 1–3 报告</h4>
+      <div class="metric" data-en="Mandatory" data-de="Pflicht" data-zh="强制">强制</div>
+      <p data-en="Granular, verifiable carbon data per tenant becomes a competitive differentiator. Sites with NetZero Carbon Platform integration (Huawei) turn compliance into tenant-facing ESG product."
+         data-de="Granulare CO2-Daten pro Mieter werden Wettbewerbsvorteil. Standorte mit NetZero-Plattform machen Compliance zum ESG-Produkt."
+         data-zh="按租户的细粒度可验证碳数据成为竞争差异化优势。接入 NetZero 碳管理平台的站点将合规转化为面向租户的 ESG 产品。">按租户的细粒度可验证碳数据成为竞争差异化优势。接入 NetZero 碳管理平台的站点将合规转化为面向租户的 ESG 产品。</p>
+    </div>
+    <div class="card reveal reveal-delay-2">
+      <h4 data-en="SLL Rate Optimization" data-de="SLL-Zinsoptimierung" data-zh="SLL 利率优化">SLL 利率优化</h4>
+      <div class="metric" data-en="€37-50M/yr" data-de="37-50 Mio. €/J" data-zh="€3700-5000 万/年">€3700-5000 万/年</div>
+      <p data-en="Full EU Taxonomy across all 8 sites unlocks 150-200bps SLL margin reduction on €2.475B debt = €37-50M annual interest savings. Directly boosts project IRR by 2-4 percentage points."
+         data-de="Volle EU-Taxonomie über 8 Standorte: 150-200 Bp. SLL-Margenreduktion = 37-50 Mio. €/Jahr Zinsersparnis."
+         data-zh="8 站点全 EU 分类法认证，解锁 €24.75 亿债务的 150-200bps SLL 利差缩减 = €3700-5000 万/年利息节省，直接提升项目 IRR 2-4 个百分点。">8 站点全 EU 分类法认证，解锁 €24.75 亿债务的 150-200bps SLL 利差缩减 = €3700-5000 万/年利息节省，直接提升项目 IRR 2-4 个百分点。</p>
+    </div>
+  </div>
+
+  <!-- 8.6 Policy Windows & Actions -->
+  <div class="sec-label reveal" data-en="POLICY WINDOWS &amp; RECOMMENDED ACTIONS" data-de="POLITIKFENSTER &amp; EMPFOHLENE MASSNAHMEN" data-zh="政策窗口期与行动建议">政策窗口期与行动建议</div>
+  <div class="table-wrap reveal">
+    <table>
+      <thead><tr><th data-en="Deadline / Window" data-de="Frist / Fenster" data-zh="截止/窗口">截止/窗口</th><th data-en="Policy Action" data-de="Politische Maßnahme" data-zh="政策事项">政策事项</th><th data-en="Impact for Maincubes" data-de="Auswirkung" data-zh="对 Maincubes 的影响">对 Maincubes 的影响</th><th data-en="Priority" data-de="Priorität" data-zh="优先级">优先级</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="mono" style="color:var(--red);">2026.06.30</td>
+          <td data-en="BesAR Application Deadline (FY2027)" data-de="BesAR-Antragsfrist (2027)" data-zh="BesAR 申请截止（2027 财年）">BesAR 申请截止（2027 财年）</td>
+          <td data-en="KWK+Offshore levies → 15% rate (~€2-5M/yr saving at 28MW; €20-50M/yr at 400MW)" data-de="KWK+Offshore → 15% (~2-5 Mio. €/J bei 28MW)" data-zh="KWK+海上风电附加费降至 15%（28MW 节省 €200-500 万/年，400MW 节省 €2000-5000 万/年）">KWK+海上风电附加费降至 15%（28MW 节省 €200-500 万/年，400MW 节省 €2000-5000 万/年）</td>
+          <td><div class="pi-badge critical">P0</div></td>
+        </tr>
+        <tr>
+          <td class="mono" style="color:var(--amber);">2026 Q3</td>
+          <td data-en="FRA03 Commissioning → EnEfG New Build Compliance" data-de="FRA03 Inbetriebnahme" data-zh="FRA03 投产 → EnEfG 新建合规">FRA03 投产 → EnEfG 新建合规</td>
+          <td data-en="PUE &lt;1.2 &amp; ERF ≥10% certification — first AI/HPC site to demonstrate full EnEfG new-build compliance" data-de="PUE &lt;1,2 &amp; ERF ≥10% — erster voll EnEfG-konformer KI-Standort" data-zh="PUE&lt;1.2 和 ERF≥10% 认证——首个全面符合 EnEfG 新建标准的 AI/HPC 站点">PUE&lt;1.2 和 ERF≥10% 认证——首个全面符合 EnEfG 新建标准的 AI/HPC 站点</td>
+          <td><div class="pi-badge high">P1</div></td>
+        </tr>
+        <tr>
+          <td class="mono" style="color:var(--amber);">2027.07</td>
+          <td data-en="EnEfG Existing Site Deadline (PUE ≤1.5)" data-de="EnEfG Bestands-RZ-Frist (PUE ≤1,5)" data-zh="EnEfG 存量站点截止（PUE ≤1.5）">EnEfG 存量站点截止（PUE ≤1.5）</td>
+          <td data-en="AMS01 MUST improve from PUE 1.6 to ≤1.5 by this date. Non-compliance = regulatory penalty + potential tenant contract breach (ESG clauses)."
+             data-de="AMS01 MUSS von PUE 1,6 auf ≤1,5 verbessern. Nicht-Compliance = Strafe + Mieter-ESG-Klauseln."
+             data-zh="AMS01 必须在此日期前从 PUE 1.6 降至 ≤1.5。不合规 = 监管处罚 + 潜在租户合同违约（ESG 条款）。">AMS01 必须在此日期前从 PUE 1.6 降至 ≤1.5。不合规 = 监管处罚 + 潜在租户合同违约（ESG 条款）。</td>
+          <td><div class="pi-badge high">P1</div></td>
+        </tr>
+        <tr>
+          <td class="mono">2027.01</td>
+          <td data-en="100% Renewable Electricity Mandate" data-de="100% Erneuerbare Energie Pflicht" data-zh="100% 可再生电力强制要求">100% 可再生电力强制要求</td>
+          <td data-en="Maincubes already at 100% — no action. Competitors relying on grid-mix face cost step-up."
+             data-de="Maincubes bereits bei 100% — kein Handlungsbedarf."
+             data-zh="Maincubes 已实现 100%——无需额外行动。依赖电网组合的竞争对手将面临成本上升。">Maincubes 已实现 100%——无需额外行动。依赖电网组合的竞争对手将面临成本上升。</td>
+          <td><div class="pi-badge medium">P2</div></td>
+        </tr>
+        <tr>
+          <td class="mono">Ongoing</td>
+          <td data-en="eco Alliance Advocacy — Re-inclusion in Industrial Price" data-de="eco-Lobbyarbeit" data-zh="eco 联盟游说 — 重回工业电价补贴">eco 联盟游说 — 重回工业电价补贴</td>
+          <td data-en="~20% electricity cost reduction if successful. Government change post-2025 election may open new window."
+             data-de="~20% Stromkostensenkung bei Erfolg."
+             data-zh="若成功可降电价约 20%。2025 大选后新政府可能打开新窗口。">若成功可降电价约 20%。2025 大选后新政府可能打开新窗口。</td>
+          <td><div class="pi-badge high">P1</div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Footer -->
+<section class="section" style="min-height:auto;padding:32px 80px;background:var(--void);">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+    <div>
+      <p style="font-family:var(--font-mono);font-size:0.58rem;color:var(--gray-500);letter-spacing:0.12em;font-weight:500;">HUAWEI DIGITAL ENERGY · AIDC SOURCE-GRID-LOAD-STORAGE</p>
+      <p style="font-size:0.7rem;color:var(--gray-400);margin-top:4px;font-weight:400;" data-en="Confidential. Prepared for Maincubes AG. © 2026 Huawei Digital Energy."
+         data-de="Vertraulich. Erstellt für Maincubes AG. © 2026 Huawei Digital Energy."
+         data-zh="机密文件。为 Maincubes AG 编制。© 2026 华为数字能源。">机密文件。为 Maincubes AG 编制。© 2026 华为数字能源。</p>
+    </div>
+    <div style="text-align:right;">
+      <p style="font-family:var(--font-mono);font-size:0.58rem;color:var(--gray-500);" data-en="Data: Maincubes Wiki (50 raw + 31 wiki pages)" data-de="Daten: Maincubes Wiki (50 Raw + 31 Wiki-Seiten)" data-zh="数据来源：Maincubes Wiki（50 raw + 31 wiki 页）">数据来源：Maincubes Wiki（50 raw + 31 wiki 页）</p>
+      <p style="font-family:var(--font-mono);font-size:0.58rem;color:var(--gray-500);" data-en="Last Ingest: 2026-06-10" data-de="Letzter Ingest: 10.06.2026" data-zh="最后更新：2026-06-10">最后更新：2026-06-10</p>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<script>
+let currentLang = 'zh';
+const tooltipsZH = ['封面','01','02','03','04','05','06','07','08'];
+const tooltipsEN = ['Cover','01','02','03','04','05','06','07','08'];
+const tooltipsDE = ['Titel','01','02','03','04','05','06','07','08'];
+const titlesZH = 'Maincubes AIDC 源网荷储战略洞察报告 — 华为数字能源';
+const titlesEN = 'Maincubes AIDC Strategic Insight Report — Huawei Digital Energy';
+const titlesDE = 'Maincubes AIDC Strategisches Insight-Report — Huawei Digital Energy';
+
+function switchLang(lang) {
+  currentLang = lang;
+  document.getElementById('btn-zh').classList.toggle('active', lang === 'zh');
+  document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+  document.getElementById('btn-de').classList.toggle('active', lang === 'de');
+  document.querySelectorAll('[data-zh][data-en][data-de]').forEach(el => {
+    el.innerHTML = el.getAttribute('data-' + lang);
+  });
+  document.querySelectorAll('#sidebar .dot .tooltip').forEach(el => {
+    const sec = el.parentElement.getAttribute('data-sec');
+    const map = lang === 'zh' ? tooltipsZH : lang === 'en' ? tooltipsEN : tooltipsDE;
+    el.textContent = map[sec];
+  });
+  document.title = lang === 'zh' ? titlesZH : lang === 'en' ? titlesEN : titlesDE;
+  document.documentElement.lang = lang;
+  localStorage.setItem('maincubes-lang', lang);
+}
+
+const savedLang = localStorage.getItem('maincubes-lang') || 'zh';
+switchLang(savedLang);
+
+// Progress Bar
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = h.scrollHeight > window.innerHeight
+    ? (window.scrollY / (h.scrollHeight - window.innerHeight)) * 100 : 0;
+  document.getElementById('progress-bar').style.width = pct + '%';
+});
+
+// Active Sidebar Dot
+const sections = document.querySelectorAll('.section');
+const dots = document.querySelectorAll('#sidebar .dot');
+function updateActiveDot() {
+  const mid = window.scrollY + window.innerHeight / 2;
+  let cur = '0';
+  sections.forEach((sec, i) => {
+    if (mid >= sec.offsetTop && mid < sec.offsetTop + sec.offsetHeight)
+      cur = i === 0 ? '0' : String(i);
+  });
+  dots.forEach(d => d.classList.toggle('active', d.getAttribute('data-sec') === cur));
+}
+window.addEventListener('scroll', updateActiveDot);
+dots.forEach(dot => {
+  dot.addEventListener('click', e => {
+    e.preventDefault();
+    const t = document.querySelector(dot.getAttribute('href'));
+    if (t) t.scrollIntoView({ behavior: 'smooth' });
+  });
+});
+
+// Scroll Reveal — staggered blur-to-sharp entrance
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+updateActiveDot();
+</script>
+</body>
+</html>
